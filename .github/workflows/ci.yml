@@ -45,4 +45,4 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Lint (compiler warnings, non-blocking)
-        run: mvn -B compile -Dmaven.compiler.showWarnings=true -Dmaven.compiler.failOnWarning=true
+        run: mvn -B compile -Dmaven.compiler.showWarnings=true

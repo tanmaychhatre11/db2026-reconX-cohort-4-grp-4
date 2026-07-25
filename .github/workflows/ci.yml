@@ -19,7 +19,6 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Build
-        working-directory: backend
         run: mvn -B compile
 
   test:
@@ -33,7 +32,6 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Test
-        working-directory: backend
         run: mvn -B test
 
   lint:
@@ -46,6 +44,5 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-      - name: Lint (compiler warnings as errors)
-        working-directory: backend
+      - name: Lint (compiler warnings, non-blocking)
         run: mvn -B compile -Dmaven.compiler.showWarnings=true -Dmaven.compiler.failOnWarning=true

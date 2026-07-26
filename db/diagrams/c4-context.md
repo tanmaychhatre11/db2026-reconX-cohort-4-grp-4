@@ -1,4 +1,4 @@
-# C4 Level 1 — Context Diagram: ReconX
+# C4 Level 1 - Context Diagram: ReconX
 
 ```mermaid
 C4Context

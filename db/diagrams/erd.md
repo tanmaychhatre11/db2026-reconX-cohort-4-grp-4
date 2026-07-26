@@ -1,20 +1,21 @@
-# TICKET-ADV006 — ER model (8 entities)
+# TICKET-ADV006 - ER Model (8 Entities)
 
 ```mermaid
 erDiagram
     COUNTERPARTIES ||--o{ TRADES : "executes"
-    INSTRUMENTS    ||--o{ TRADES : "covers"
-    TRADES         ||--o{ SETTLEMENTS : "settles via"
-    TRADES         ||--o{ RECON_BREAKS : "may produce"
-    RECON_JOBS     ||--o{ RECON_BREAKS : "detected by"
-    USERS          ||--o{ AUDIT_LOG : "actor"
-    TRADES         ||--o{ AUDIT_LOG : "audited"
+    INSTRUMENTS ||--o{ TRADES : "covers"
+    TRADES ||--o{ SETTLEMENTS : "settles via"
+    TRADES ||--o{ RECON_BREAKS : "may produce"
+    TRADES ||--o{ AUDIT_LOG : "audited"
+    USERS ||--o{ AUDIT_LOG : "actor"
+    RECON_JOBS ||--o{ RECON_BREAKS : "detected by"
 
     COUNTERPARTIES {
         bigint id PK
         varchar name
-        char lei_code UK
+        varchar lei_code UK
         varchar region
+        timestamp created_at
     }
 
     INSTRUMENTS {
@@ -22,9 +23,9 @@ erDiagram
         varchar symbol UK
         varchar name
         varchar asset_class
-        char currency
-        char isin UK
-        jsonb metadata "ADV009"
+        varchar currency
+        varchar isin UK
+        jsonb metadata
     }
 
     TRADES {
@@ -36,9 +37,9 @@ erDiagram
         varchar side
         numeric quantity
         numeric price
-        date trade_date "PARTITION KEY (ADV007)"
+        date trade_date "PARTITION KEY"
         varchar status
-        timestamp deleted_at "ADV067 soft delete"
+        timestamp deleted_at
         timestamp created_at
         timestamp modified_at
     }
@@ -80,8 +81,8 @@ erDiagram
         varchar event_type
         timestamp event_timestamp
         varchar actor
-        clob before_state
-        clob after_state
+        text before_state
+        text after_state
     }
 
     USERS {
@@ -93,3 +94,25 @@ erDiagram
         timestamp created_at
     }
 ```
+
+## Entity Summary
+
+| Entity | Purpose | Partition Key |
+|--------|---------|---------------|
+| **counterparties** | Trading counterparties with LEI codes | - |
+| **instruments** | Financial instruments (equities, bonds, etc.) | - |
+| **trades** | Core trade records with lifecycle status | `trade_date` |
+| **settlements** | Settlement instructions per trade | - |
+| **recon_breaks** | Detected discrepancies during reconciliation | - |
+| **recon_jobs** | Async reconciliation job tracking | - |
+| **audit_log** | Append-only event log for trade changes | - |
+| **users** | Application users for JWT-based RBAC | - |
+
+## Foreign Key Relationships
+
+| Child Table | FK Column | Parent Table | Constraint |
+|-------------|-----------|--------------|------------|
+| trades | instrument_id | instruments | fk_trades_instrument |
+| trades | counterparty_id | counterparties | fk_trades_counterparty |
+| settlements | trade_id | trades | fk_settlements_trade |
+| recon_breaks | trade_id | trades | fk_recon_breaks_trade |

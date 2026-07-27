@@ -117,8 +117,34 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY mv_daily_recon_summary;
 
 
 -- ============================================================================
--- ADV009 — JSONB lookup: which instruments have sector = 'Banking'?
+-- ADV009 — JSONB queries against instruments.metadata (GIN jsonb_path_ops)
 -- ============================================================================
+
+-- Containment (@>) — uses GIN index: instruments in the Banking sector
 SELECT id, symbol, metadata
 FROM instruments
 WHERE metadata @> '{"sector":"Banking"}'::jsonb;
+
+-- Containment (@>) — Technology sector instruments
+SELECT id, symbol, metadata->>'sector' AS sector
+FROM instruments
+WHERE metadata @> '{"sector":"Technology"}';
+
+-- Path extraction (->>) — issuer country for every instrument that has one
+SELECT symbol, metadata->'issuer'->>'country' AS country
+FROM instruments
+WHERE metadata ? 'issuer';
+
+-- Key existence (?) — instruments that carry a credit rating
+SELECT symbol, metadata->'rating'->>'sp' AS sp_rating
+FROM instruments
+WHERE metadata ? 'rating';
+
+-- Array membership (?|) — instruments tagged as safe-haven or benchmark
+SELECT symbol, metadata->>'sector' AS sector
+FROM instruments
+WHERE metadata->'tags' ?| ARRAY['safe-haven', 'benchmark'];
+
+-- EXPLAIN ANALYZE to confirm GIN index scan (not a Seq Scan)
+EXPLAIN ANALYZE
+SELECT * FROM instruments WHERE metadata @> '{"sector":"Technology"}';

@@ -74,4 +74,31 @@
         </rollback>
     </changeSet>
 
+    <!-- TICKET-ADV009 — Populate JSONB metadata for seeded instruments -->
+    <changeSet id="008-seed-instruments-metadata" author="trainer">
+        <preConditions onFail="MARK_RAN">
+            <dbms type="postgresql"/>
+        </preConditions>
+        <sql>
+UPDATE instruments SET metadata = '{"sector":"Technology","exchange":"XETR","issuer":{"name":"SAP SE","country":"DE","lei":"529900D6BF99LW9R2E68"},"rating":{"sp":"AA-","moody":"Aa3"},"tags":["DAX40","ESG-tier-1"]}'::JSONB WHERE symbol = 'SAP.DE';
+UPDATE instruments SET metadata = '{"sector":"Industrials","exchange":"XETR","issuer":{"name":"Siemens AG","country":"DE"},"rating":{"sp":"A+","moody":"A1"},"tags":["DAX40"]}'::JSONB WHERE symbol = 'SIE.DE';
+UPDATE instruments SET metadata = '{"sector":"Banking","exchange":"XETR","issuer":{"name":"Deutsche Bank AG","country":"DE","lei":"7LTWFZYICNSX8D621K86"},"rating":{"sp":"BBB+","moody":"Baa2"},"tags":["DAX40","financials"]}'::JSONB WHERE symbol = 'DBKGn.DE';
+UPDATE instruments SET metadata = '{"sector":"Technology","exchange":"NASDAQ","issuer":{"name":"Apple Inc","country":"US","lei":"HWUPKR0MPOU8FGXBT394"},"rating":{"sp":"AA+","moody":"Aaa"},"tags":["SP500","NASDAQ100","ESG-tier-2"]}'::JSONB WHERE symbol = 'AAPL';
+UPDATE instruments SET metadata = '{"sector":"Technology","exchange":"NASDAQ","issuer":{"name":"Microsoft Corp","country":"US","lei":"INR2EJN1ERAN0W5ZP974"},"rating":{"sp":"AAA","moody":"Aaa"},"tags":["SP500","NASDAQ100","ESG-tier-1"]}'::JSONB WHERE symbol = 'MSFT';
+UPDATE instruments SET metadata = '{"sector":"Technology","exchange":"NASDAQ","issuer":{"name":"Alphabet Inc","country":"US"},"rating":{"sp":"AA+","moody":"Aa2"},"tags":["SP500","NASDAQ100"]}'::JSONB WHERE symbol = 'GOOGL';
+UPDATE instruments SET metadata = '{"sector":"Banking","exchange":"LSE","issuer":{"name":"HSBC Holdings","country":"GB","lei":"MLU0ZO3ML4LN2LL2TL39"},"rating":{"sp":"A-","moody":"A2"},"tags":["FTSE100","financials"]}'::JSONB WHERE symbol = 'HSBA.L';
+UPDATE instruments SET metadata = '{"sector":"Telecoms","exchange":"LSE","issuer":{"name":"Vodafone Group","country":"GB"},"rating":{"sp":"BBB","moody":"Baa2"},"tags":["FTSE100"]}'::JSONB WHERE symbol = 'VOD.L';
+UPDATE instruments SET metadata = '{"sector":"Telecoms","exchange":"TSX","issuer":{"name":"Telus Corp","country":"CA"},"rating":{"sp":"BBB+","moody":"Baa1"},"tags":["TSX60"]}'::JSONB WHERE symbol = 'T.TO';
+UPDATE instruments SET metadata = '{"sector":"Government","subtype":"sovereign","issuer":{"name":"Federal Republic of Germany","country":"DE"},"rating":{"sp":"AAA","moody":"Aaa"},"tags":["safe-haven","benchmark"]}'::JSONB WHERE symbol = 'BUND10Y';
+UPDATE instruments SET metadata = '{"sector":"Government","subtype":"sovereign","issuer":{"name":"US Treasury","country":"US"},"rating":{"sp":"AA+","moody":"Aaa"},"tags":["safe-haven","benchmark"]}'::JSONB WHERE symbol = 'UST10Y';
+UPDATE instruments SET metadata = '{"sector":"Government","subtype":"sovereign","issuer":{"name":"HM Treasury","country":"GB"},"rating":{"sp":"AA","moody":"Aa3"},"tags":["safe-haven","benchmark"]}'::JSONB WHERE symbol = 'GILT10Y';
+UPDATE instruments SET metadata = '{"sector":"FX","baseCurrency":"EUR","quoteCurrency":"USD","tags":["G10","major"]}'::JSONB WHERE symbol = 'EUR/USD';
+UPDATE instruments SET metadata = '{"sector":"FX","baseCurrency":"USD","quoteCurrency":"JPY","tags":["G10","major","carry"]}'::JSONB WHERE symbol = 'USD/JPY';
+UPDATE instruments SET metadata = '{"sector":"FX","baseCurrency":"GBP","quoteCurrency":"USD","tags":["G10","major"]}'::JSONB WHERE symbol = 'GBP/USD';
+        </sql>
+        <rollback>
+            <sql>UPDATE instruments SET metadata = '{}'::JSONB;</sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

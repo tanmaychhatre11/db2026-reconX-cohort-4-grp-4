@@ -2,10 +2,10 @@
 
 ```mermaid
 C4Component
-    title C4 Component - recon-service API
+    title C4 Component — recon-service API
 
-    Container_Ext(spa, "SPA Frontend", "React / Vite", "Single-page app consumed by Ops Analysts and Managers")
-    ContainerDb_Ext(postgres, "PostgreSQL", "PostgreSQL 15", "Stores trades, breaks, audit logs, and reference data")
+    Container_Ext(spa, "SPA Frontend", "React 19 / Vite", "Single-page app consumed by Ops Analysts and Managers")
+    ContainerDb_Ext(postgres, "PostgreSQL", "PostgreSQL 16", "Stores trades, breaks, audit logs, and reference data")
     Container_Ext(kafka, "Apache Kafka", "Kafka 3.x", "Message broker for trade events and alerts")
     Container_Ext(sso, "Identity Provider", "OIDC / SSO", "Issues and validates JWT access tokens")
     Container_Ext(prometheus, "Prometheus", "Metrics collector", "Scrapes actuator prometheus endpoint")

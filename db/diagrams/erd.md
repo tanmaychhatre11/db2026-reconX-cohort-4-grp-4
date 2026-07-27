@@ -121,13 +121,6 @@ erDiagram
 | recon_breaks | recon_job_id | recon_jobs | fk_recon_breaks_job |
 | recon_jobs | triggered_by | users | fk_recon_jobs_user |
 
-## Design Notes
-
-- `audit_log.changed_by` deliberately has **NO database FK** - audit records must outlive the users and trades they reference
-- `trades.trade_date` is the partition key for range partitioning (TICKET-ADV007)
-- `instruments.metadata` stores flexible JSONB attributes (TICKET-ADV009)
-| recon_breaks | recon_job_id | recon_jobs | fk_recon_breaks_job |
-| recon_jobs | triggered_by | users | fk_recon_jobs_user |
 
 ## Design Notes
 

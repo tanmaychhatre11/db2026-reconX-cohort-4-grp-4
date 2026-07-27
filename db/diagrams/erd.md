@@ -6,9 +6,9 @@ erDiagram
     INSTRUMENTS ||--o{ TRADES : "covers"
     TRADES ||--o{ SETTLEMENTS : "settles via"
     TRADES ||--o{ RECON_BREAKS : "may produce"
-    TRADES ||--o{ AUDIT_LOG : "audited"
-    USERS ||--o{ AUDIT_LOG : "actor"
     RECON_JOBS ||--o{ RECON_BREAKS : "detected by"
+    USERS ||--o{ RECON_JOBS : "triggers"
+    USERS ||--o{ AUDIT_LOG : "actor"
 
     COUNTERPARTIES {
         bigint id PK
@@ -25,7 +25,7 @@ erDiagram
         varchar asset_class
         varchar currency
         varchar isin UK
-        jsonb metadata
+        jsonb metadata "TICKET-ADV009"
     }
 
     TRADES {
@@ -37,7 +37,7 @@ erDiagram
         varchar side
         numeric quantity
         numeric price
-        date trade_date "PARTITION KEY"
+        date trade_date "PARTITION KEY (TICKET-ADV007)"
         varchar status
         timestamp deleted_at
         timestamp created_at
@@ -55,6 +55,7 @@ erDiagram
     RECON_BREAKS {
         bigint id PK
         bigint trade_id FK
+        bigint recon_job_id FK
         varchar discrepancy_type
         varchar status
         timestamp detected_at
@@ -65,6 +66,7 @@ erDiagram
     RECON_JOBS {
         bigint id PK
         varchar job_id UK
+        bigint triggered_by FK
         date from_date
         date to_date
         varchar status
@@ -80,7 +82,7 @@ erDiagram
         varchar trade_ref
         varchar event_type
         timestamp event_timestamp
-        varchar actor
+        varchar changed_by "NO FK - audit outlives users"
         text before_state
         text after_state
     }
@@ -116,3 +118,19 @@ erDiagram
 | trades | counterparty_id | counterparties | fk_trades_counterparty |
 | settlements | trade_id | trades | fk_settlements_trade |
 | recon_breaks | trade_id | trades | fk_recon_breaks_trade |
+| recon_breaks | recon_job_id | recon_jobs | fk_recon_breaks_job |
+| recon_jobs | triggered_by | users | fk_recon_jobs_user |
+
+## Design Notes
+
+- `audit_log.changed_by` deliberately has **NO database FK** - audit records must outlive the users and trades they reference
+- `trades.trade_date` is the partition key for range partitioning (TICKET-ADV007)
+- `instruments.metadata` stores flexible JSONB attributes (TICKET-ADV009)
+| recon_breaks | recon_job_id | recon_jobs | fk_recon_breaks_job |
+| recon_jobs | triggered_by | users | fk_recon_jobs_user |
+
+## Design Notes
+
+- `audit_log.changed_by` deliberately has **NO database FK** - audit records must outlive the users and trades they reference
+- `trades.trade_date` is the partition key for range partitioning (TICKET-ADV007)
+- `instruments.metadata` stores flexible JSONB attributes (TICKET-ADV009)

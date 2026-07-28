@@ -9,6 +9,9 @@
           rollback by tag straightforward (ADV013).
  OBSERVE: On first boot, Liquibase creates databasechangelog + databasechangeloglock
           tables, then applies every included changeset in declared order.
+
+ DEPENDENCY NOTE (ADV008 fix): 005-mat-views.xml (v2) reads from recon_breaks,
+ so 006-audit-and-recon.xml MUST be included before 005-mat-views.xml.
  ============================================================================
 -->
 <databaseChangeLog
@@ -19,10 +22,28 @@
 
     <include file="changes/001-init.xml"          relativeToChangelogFile="true"/>
     <include file="changes/002-schema.xml"        relativeToChangelogFile="true"/>
+
+    <!-- release-1.0: base schema (counterparties, instruments, trades, settlements) -->
+    <changeSet id="tag-release-1-0" author="trainer">
+        <tagDatabase tag="release-1.0"/>
+    </changeSet>
+
     <include file="changes/003-jsonb.xml"         relativeToChangelogFile="true"/>
-    <include file="changes/004-partitioning.xml"  relativeToChangelogFile="true"/>
-    <include file="changes/005-mat-views.xml"     relativeToChangelogFile="true"/>
+
+    <!-- release-1.1: base schema + JSONB metadata on instruments -->
+    <changeSet id="tag-release-1-1" author="trainer">
+        <tagDatabase tag="release-1.1"/>
+    </changeSet>
+
+    <include file="changes/004-partitioning.xml"    relativeToChangelogFile="true"/>
     <include file="changes/006-audit-and-recon.xml" relativeToChangelogFile="true"/>
+    <include file="changes/005-mat-views.xml"       relativeToChangelogFile="true"/>
+
+    <!-- release-1.2: + partitioned trades, audit_log/recon_breaks/recon_jobs, mat view -->
+    <changeSet id="tag-release-1-2" author="trainer">
+        <tagDatabase tag="release-1.2"/>
+    </changeSet>
+
     <include file="changes/007-users-rbac.xml"    relativeToChangelogFile="true"/>
     <include file="changes/008-seed.xml"          relativeToChangelogFile="true"/>
 

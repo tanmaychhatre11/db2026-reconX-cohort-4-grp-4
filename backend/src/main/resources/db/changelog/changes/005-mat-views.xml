@@ -17,9 +17,11 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
+    <!-- Original changeset kept as-is (already applied to DB) -->
     <changeSet id="005-mv-daily-recon-summary" author="trainer">
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM pg_matviews WHERE schemaname='public' AND matviewname='mv_daily_recon_summary'</sqlCheck>
         </preConditions>
         <sql splitStatements="false"><![CDATA[
             CREATE MATERIALIZED VIEW mv_daily_recon_summary AS
@@ -35,6 +37,55 @@
 
             CREATE UNIQUE INDEX uq_mv_daily_recon_summary_trade_date
                 ON mv_daily_recon_summary (trade_date);
+        ]]></sql>
+        <rollback>
+            <sql>DROP MATERIALIZED VIEW IF EXISTS mv_daily_recon_summary;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- TICKET-ADV008 fix: add region (JOIN counterparties), correct open_breaks (from
+         recon_breaks), full GROUP BY (trade_date, region, asset_class), add match_rate_pct,
+         create WITH NO DATA to avoid immediate population on deploy -->
+    <changeSet id="005-mv-daily-recon-summary-v2" author="trainer">
+        <preConditions onFail="MARK_RAN">
+            <dbms type="postgresql"/>
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM pg_matviews WHERE schemaname='public' AND matviewname='mv_daily_recon_summary'</sqlCheck>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            DROP MATERIALIZED VIEW IF EXISTS mv_daily_recon_summary;
+
+            CREATE MATERIALIZED VIEW mv_daily_recon_summary
+            WITH (fillfactor = 90) AS
+            SELECT
+                t.trade_date,
+                cp.region,
+                t.asset_class,
+                COUNT(*)                                                              AS total_trades,
+                COUNT(*) FILTER (WHERE t.status = 'SETTLED')                         AS matched_trades,
+                COALESCE(SUM(rb.open_count), 0)                                      AS open_breaks,
+                COALESCE(ROUND(SUM(t.quantity * t.price)::NUMERIC, 2), 0)            AS gross_notional,
+                ROUND(
+                    COUNT(*) FILTER (WHERE t.status = 'SETTLED') * 100.0
+                    / NULLIF(COUNT(*), 0),
+                    2
+                )                                                                     AS match_rate_pct
+            FROM trades t
+            JOIN counterparties cp
+                ON cp.id = t.counterparty_id
+            LEFT JOIN (
+                SELECT trade_id,
+                       COUNT(*) FILTER (WHERE status = 'OPEN') AS open_count
+                FROM   recon_breaks
+                GROUP  BY trade_id
+            ) rb ON rb.trade_id = t.id
+            WHERE t.deleted_at IS NULL
+            GROUP BY t.trade_date, cp.region, t.asset_class
+            WITH NO DATA;
+
+            CREATE UNIQUE INDEX uq_mv_daily_recon_summary
+                ON mv_daily_recon_summary (trade_date, region, asset_class);
+
+            REFRESH MATERIALIZED VIEW mv_daily_recon_summary;
         ]]></sql>
         <rollback>
             <sql>DROP MATERIALIZED VIEW IF EXISTS mv_daily_recon_summary;</sql>

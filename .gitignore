@@ -1,0 +1,13 @@
+*.json
+# Maven build output
+target/
+backend/target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+liquibase.properties

@@ -17,7 +17,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
-    <changeSet id="008-seed-counterparties" author="trainer">
+    <changeSet id="008-seed-counterparties" author="trainer" context="dev,test,uat">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM counterparties</sqlCheck>
+        </preConditions>
         <loadData file="data/counterparties.csv" tableName="counterparties"
                   separator="," relativeToChangelogFile="true">
             <column name="id" type="NUMERIC"/>
@@ -30,7 +33,10 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="008-seed-instruments" author="trainer">
+    <changeSet id="008-seed-instruments" author="trainer" context="dev,test,uat">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM instruments</sqlCheck>
+        </preConditions>
         <loadData file="data/instruments.csv" tableName="instruments"
                   separator="," relativeToChangelogFile="true">
             <column name="id" type="NUMERIC"/>
@@ -45,7 +51,76 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="008-seed-users" author="trainer">
+    <changeSet id="008-seed-trades" author="trainer" context="dev,test,uat">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM trades
+            </sqlCheck>
+        </preConditions>
+
+        <sql>
+        <![CDATA[
+        INSERT INTO trades (
+            trade_ref,
+            instrument_id,
+            counterparty_id,
+            asset_class,
+            side,
+            quantity,
+            price,
+            trade_date,
+            status
+        )
+        SELECT
+            'TRD-2026-' || LPAD(gs::text, 6, '0'),
+
+            i.id,
+
+            ((gs - 1) % 10) + 1,
+
+            i.asset_class,
+
+            CASE
+                WHEN random() < 0.5 THEN 'BUY'
+                ELSE 'SELL'
+            END,
+
+            ROUND((100 + random() * 9900)::numeric,4),
+
+            ROUND((20 + random() * 980)::numeric,4),
+
+            DATE '2026-04-01' + floor(random()*120)::int,
+
+            CASE
+                WHEN random() < 0.70 THEN 'MATCHED'
+                WHEN random() < 0.82 THEN 'PENDING'
+                WHEN random() < 0.94 THEN 'UNMATCHED'
+                ELSE 'DISPUTED'
+            END
+
+        FROM generate_series(1,500) gs
+
+        JOIN (
+            SELECT
+                id,
+                asset_class,
+                ROW_NUMBER() OVER (ORDER BY id) rn
+            FROM instruments
+        ) i
+        ON i.rn = ((gs - 1) % (SELECT COUNT(*) FROM instruments)) + 1;
+        ]]>
+        </sql>
+
+        <rollback>
+            <sql>DELETE FROM trades;</sql>
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="008-seed-users" author="trainer" context="dev,test,uat">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM users</sqlCheck>
+        </preConditions>
         <!-- Real BCrypt hashes (cost=10) for admin123 / trader123 / viewer123 / recon123.
              Generated via: htpasswd -bnBC 10 "" <pw> | tr -d ':\n'
              Spring Security's BCryptPasswordEncoder accepts both $2a$ and $2y$ prefixes. -->
@@ -71,6 +146,120 @@
         </insert>
         <rollback>
             <sql>DELETE FROM users;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- TICKET-ADV009 — Populate JSONB metadata for seeded instruments -->
+    <changeSet id="008-instrument-metadata" author="trainer" context="dev,test,uat">
+
+        <sql>
+
+            UPDATE instruments AS i
+            SET metadata = v.metadata::jsonb
+
+            FROM (
+                VALUES
+
+                ('SAP.DE',
+                '{"sector":"Technology","country":"Germany","exchange":"XETRA","market_cap":"Large Cap"}'),
+
+                ('SIE.DE',
+                '{"sector":"Industrials","country":"Germany","exchange":"XETRA","market_cap":"Large Cap"}'),
+
+                ('DBKGn.DE',
+                '{"sector":"Financials","country":"Germany","exchange":"XETRA","market_cap":"Large Cap"}'),
+
+                ('AAPL',
+                '{"sector":"Technology","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('MSFT',
+                '{"sector":"Technology","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('GOOGL',
+                '{"sector":"Technology","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('AMZN',
+                '{"sector":"Consumer Discretionary","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('META',
+                '{"sector":"Technology","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('NVDA',
+                '{"sector":"Semiconductors","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('HSBA.L',
+                '{"sector":"Financials","country":"United Kingdom","exchange":"LSE","market_cap":"Large Cap"}'),
+
+                ('VOD.L',
+                '{"sector":"Telecommunications","country":"United Kingdom","exchange":"LSE","market_cap":"Large Cap"}'),
+
+                ('BUND10Y',
+                '{"issuer":"Germany","rating":"AAA","maturity":"10Y"}'),
+
+                ('UST10Y',
+                '{"issuer":"United States","rating":"AA+","maturity":"10Y"}'),
+
+                ('GILT10Y',
+                '{"issuer":"United Kingdom","rating":"AA","maturity":"10Y"}'),
+
+                ('EUR/USD',
+                '{"base_currency":"EUR","quote_currency":"USD","market":"FX"}'),
+
+                ('USD/JPY',
+                '{"base_currency":"USD","quote_currency":"JPY","market":"FX"}'),
+
+                ('GBP/USD',
+                '{"base_currency":"GBP","quote_currency":"USD","market":"FX"}'),
+
+                ('XAU',
+                '{"commodity":"Gold","unit":"Troy Ounce"}'),
+
+                ('BRENT',
+                '{"commodity":"Crude Oil","benchmark":"ICE Brent"}'),
+
+                ('SPY',
+                '{"fund_type":"ETF","benchmark":"SP 500"}'),
+
+                ('QQQ',
+                '{"fund_type":"ETF","benchmark":"NASDAQ-100"}'),
+
+                ('GLD',
+                '{"fund_type":"ETF","benchmark":"Gold"}'),
+
+                ('ES_FUT',
+                '{"contract":"E-mini SP 500","exchange":"CME"}'),
+
+                ('CL_FUT',
+                '{"contract":"WTI Crude Oil","exchange":"NYMEX"}')
+
+            ) AS v(symbol, metadata)
+
+            WHERE i.symbol = v.symbol;
+
+        </sql>
+
+        <rollback>
+            UPDATE instruments
+            SET metadata = '{}'::jsonb;
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="008-seed-recon-breaks" author="trainer" context="dev,test,uat">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM recon_breaks</sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO recon_breaks (trade_id, discrepancy_type, status)
+            SELECT id,
+                (ARRAY['PRICE_MISMATCH','QUANTITY_MISMATCH','DATE_MISMATCH'])[1 + (id % 3)],
+                'OPEN'
+            FROM trades
+            WHERE status IN ('UNMATCHED','DISPUTED')
+            LIMIT 30;
+        </sql>
+        <rollback>
+            <sql>DELETE FROM recon_breaks</sql>
         </rollback>
     </changeSet>
 

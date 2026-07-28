@@ -17,7 +17,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
-    <changeSet id="008-seed-counterparties" author="trainer" context="dev,test,uat" runAlways="true">
+    <changeSet id="008-seed-counterparties" author="trainer" context="dev,test,uat">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">SELECT COUNT(*) FROM counterparties</sqlCheck>
         </preConditions>
@@ -33,7 +33,7 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="008-seed-instruments" author="trainer" context="dev,test,uat" runAlways="true">
+    <changeSet id="008-seed-instruments" author="trainer" context="dev,test,uat">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">SELECT COUNT(*) FROM instruments</sqlCheck>
         </preConditions>
@@ -51,7 +51,73 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="008-seed-users" author="trainer" context="dev,test,uat" runAlways="true">
+    <changeSet id="008-seed-trades" author="trainer" context="dev,test,uat">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM trades
+            </sqlCheck>
+        </preConditions>
+
+        <sql>
+        <![CDATA[
+        INSERT INTO trades (
+            trade_ref,
+            instrument_id,
+            counterparty_id,
+            asset_class,
+            side,
+            quantity,
+            price,
+            trade_date,
+            status
+        )
+        SELECT
+            'TRD-2026-' || LPAD(gs::text, 6, '0'),
+
+            i.id,
+
+            ((gs - 1) % 10) + 1,
+
+            i.asset_class,
+
+            CASE
+                WHEN random() < 0.5 THEN 'BUY'
+                ELSE 'SELL'
+            END,
+
+            ROUND((100 + random() * 9900)::numeric,4),
+
+            ROUND((20 + random() * 980)::numeric,4),
+
+            DATE '2026-04-01' + floor(random()*120)::int,
+
+            CASE
+                WHEN random() < 0.70 THEN 'MATCHED'
+                WHEN random() < 0.82 THEN 'PENDING'
+                WHEN random() < 0.94 THEN 'UNMATCHED'
+                ELSE 'DISPUTED'
+            END
+
+        FROM generate_series(1,500) gs
+
+        JOIN (
+            SELECT
+                id,
+                asset_class,
+                ROW_NUMBER() OVER (ORDER BY id) rn
+            FROM instruments
+        ) i
+        ON i.rn = ((gs - 1) % (SELECT COUNT(*) FROM instruments)) + 1;
+        ]]>
+        </sql>
+
+        <rollback>
+            <sql>DELETE FROM trades;</sql>
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="008-seed-users" author="trainer" context="dev,test,uat">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">SELECT COUNT(*) FROM users</sqlCheck>
         </preConditions>
@@ -84,30 +150,116 @@
     </changeSet>
 
     <!-- TICKET-ADV009 — Populate JSONB metadata for seeded instruments -->
-    <changeSet id="008-seed-instruments-metadata" author="trainer" context="dev,test,uat" runAlways="true">
+    <changeSet id="008-instrument-metadata" author="trainer" context="dev,test,uat">
+
+        <sql>
+
+            UPDATE instruments AS i
+            SET metadata = v.metadata::jsonb
+
+            FROM (
+                VALUES
+
+                ('SAP.DE',
+                '{"sector":"Technology","country":"Germany","exchange":"XETRA","market_cap":"Large Cap"}'),
+
+                ('SIE.DE',
+                '{"sector":"Industrials","country":"Germany","exchange":"XETRA","market_cap":"Large Cap"}'),
+
+                ('DBKGn.DE',
+                '{"sector":"Financials","country":"Germany","exchange":"XETRA","market_cap":"Large Cap"}'),
+
+                ('AAPL',
+                '{"sector":"Technology","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('MSFT',
+                '{"sector":"Technology","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('GOOGL',
+                '{"sector":"Technology","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('AMZN',
+                '{"sector":"Consumer Discretionary","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('META',
+                '{"sector":"Technology","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('NVDA',
+                '{"sector":"Semiconductors","country":"United States","exchange":"NASDAQ","market_cap":"Mega Cap"}'),
+
+                ('HSBA.L',
+                '{"sector":"Financials","country":"United Kingdom","exchange":"LSE","market_cap":"Large Cap"}'),
+
+                ('VOD.L',
+                '{"sector":"Telecommunications","country":"United Kingdom","exchange":"LSE","market_cap":"Large Cap"}'),
+
+                ('BUND10Y',
+                '{"issuer":"Germany","rating":"AAA","maturity":"10Y"}'),
+
+                ('UST10Y',
+                '{"issuer":"United States","rating":"AA+","maturity":"10Y"}'),
+
+                ('GILT10Y',
+                '{"issuer":"United Kingdom","rating":"AA","maturity":"10Y"}'),
+
+                ('EUR/USD',
+                '{"base_currency":"EUR","quote_currency":"USD","market":"FX"}'),
+
+                ('USD/JPY',
+                '{"base_currency":"USD","quote_currency":"JPY","market":"FX"}'),
+
+                ('GBP/USD',
+                '{"base_currency":"GBP","quote_currency":"USD","market":"FX"}'),
+
+                ('XAU',
+                '{"commodity":"Gold","unit":"Troy Ounce"}'),
+
+                ('BRENT',
+                '{"commodity":"Crude Oil","benchmark":"ICE Brent"}'),
+
+                ('SPY',
+                '{"fund_type":"ETF","benchmark":"SP 500"}'),
+
+                ('QQQ',
+                '{"fund_type":"ETF","benchmark":"NASDAQ-100"}'),
+
+                ('GLD',
+                '{"fund_type":"ETF","benchmark":"Gold"}'),
+
+                ('ES_FUT',
+                '{"contract":"E-mini SP 500","exchange":"CME"}'),
+
+                ('CL_FUT',
+                '{"contract":"WTI Crude Oil","exchange":"NYMEX"}')
+
+            ) AS v(symbol, metadata)
+
+            WHERE i.symbol = v.symbol;
+
+        </sql>
+
+        <rollback>
+            UPDATE instruments
+            SET metadata = '{}'::jsonb;
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="008-seed-recon-breaks" author="trainer" context="dev,test,uat">
         <preConditions onFail="MARK_RAN">
-            <dbms type="postgresql"/>
-            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM instruments WHERE metadata &lt;&gt; '{}'::jsonb</sqlCheck>
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM recon_breaks</sqlCheck>
         </preConditions>
         <sql>
-UPDATE instruments SET metadata = '{"sector":"Technology","exchange":"XETR","issuer":{"name":"SAP SE","country":"DE","lei":"529900D6BF99LW9R2E68"},"rating":{"sp":"AA-","moody":"Aa3"},"tags":["DAX40","ESG-tier-1"]}'::JSONB WHERE symbol = 'SAP.DE';
-UPDATE instruments SET metadata = '{"sector":"Industrials","exchange":"XETR","issuer":{"name":"Siemens AG","country":"DE"},"rating":{"sp":"A+","moody":"A1"},"tags":["DAX40"]}'::JSONB WHERE symbol = 'SIE.DE';
-UPDATE instruments SET metadata = '{"sector":"Banking","exchange":"XETR","issuer":{"name":"Deutsche Bank AG","country":"DE","lei":"7LTWFZYICNSX8D621K86"},"rating":{"sp":"BBB+","moody":"Baa2"},"tags":["DAX40","financials"]}'::JSONB WHERE symbol = 'DBKGn.DE';
-UPDATE instruments SET metadata = '{"sector":"Technology","exchange":"NASDAQ","issuer":{"name":"Apple Inc","country":"US","lei":"HWUPKR0MPOU8FGXBT394"},"rating":{"sp":"AA+","moody":"Aaa"},"tags":["SP500","NASDAQ100","ESG-tier-2"]}'::JSONB WHERE symbol = 'AAPL';
-UPDATE instruments SET metadata = '{"sector":"Technology","exchange":"NASDAQ","issuer":{"name":"Microsoft Corp","country":"US","lei":"INR2EJN1ERAN0W5ZP974"},"rating":{"sp":"AAA","moody":"Aaa"},"tags":["SP500","NASDAQ100","ESG-tier-1"]}'::JSONB WHERE symbol = 'MSFT';
-UPDATE instruments SET metadata = '{"sector":"Technology","exchange":"NASDAQ","issuer":{"name":"Alphabet Inc","country":"US"},"rating":{"sp":"AA+","moody":"Aa2"},"tags":["SP500","NASDAQ100"]}'::JSONB WHERE symbol = 'GOOGL';
-UPDATE instruments SET metadata = '{"sector":"Banking","exchange":"LSE","issuer":{"name":"HSBC Holdings","country":"GB","lei":"MLU0ZO3ML4LN2LL2TL39"},"rating":{"sp":"A-","moody":"A2"},"tags":["FTSE100","financials"]}'::JSONB WHERE symbol = 'HSBA.L';
-UPDATE instruments SET metadata = '{"sector":"Telecoms","exchange":"LSE","issuer":{"name":"Vodafone Group","country":"GB"},"rating":{"sp":"BBB","moody":"Baa2"},"tags":["FTSE100"]}'::JSONB WHERE symbol = 'VOD.L';
-UPDATE instruments SET metadata = '{"sector":"Telecoms","exchange":"TSX","issuer":{"name":"Telus Corp","country":"CA"},"rating":{"sp":"BBB+","moody":"Baa1"},"tags":["TSX60"]}'::JSONB WHERE symbol = 'T.TO';
-UPDATE instruments SET metadata = '{"sector":"Government","subtype":"sovereign","issuer":{"name":"Federal Republic of Germany","country":"DE"},"rating":{"sp":"AAA","moody":"Aaa"},"tags":["safe-haven","benchmark"]}'::JSONB WHERE symbol = 'BUND10Y';
-UPDATE instruments SET metadata = '{"sector":"Government","subtype":"sovereign","issuer":{"name":"US Treasury","country":"US"},"rating":{"sp":"AA+","moody":"Aaa"},"tags":["safe-haven","benchmark"]}'::JSONB WHERE symbol = 'UST10Y';
-UPDATE instruments SET metadata = '{"sector":"Government","subtype":"sovereign","issuer":{"name":"HM Treasury","country":"GB"},"rating":{"sp":"AA","moody":"Aa3"},"tags":["safe-haven","benchmark"]}'::JSONB WHERE symbol = 'GILT10Y';
-UPDATE instruments SET metadata = '{"sector":"FX","baseCurrency":"EUR","quoteCurrency":"USD","tags":["G10","major"]}'::JSONB WHERE symbol = 'EUR/USD';
-UPDATE instruments SET metadata = '{"sector":"FX","baseCurrency":"USD","quoteCurrency":"JPY","tags":["G10","major","carry"]}'::JSONB WHERE symbol = 'USD/JPY';
-UPDATE instruments SET metadata = '{"sector":"FX","baseCurrency":"GBP","quoteCurrency":"USD","tags":["G10","major"]}'::JSONB WHERE symbol = 'GBP/USD';
+            INSERT INTO recon_breaks (trade_id, discrepancy_type, status)
+            SELECT id,
+                (ARRAY['PRICE_MISMATCH','QUANTITY_MISMATCH','DATE_MISMATCH'])[1 + (id % 3)],
+                'OPEN'
+            FROM trades
+            WHERE status IN ('UNMATCHED','DISPUTED')
+            LIMIT 30;
         </sql>
         <rollback>
-            <sql>UPDATE instruments SET metadata = '{}'::JSONB;</sql>
+            <sql>DELETE FROM recon_breaks</sql>
         </rollback>
     </changeSet>
 

@@ -79,6 +79,7 @@
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
             <tableExists tableName="trades"/>
+            <not><tableExists tableName="trades_y2026m04"/></not>
         </preConditions>
         <sql>
             CREATE TABLE trades_y2026m04 PARTITION OF trades
@@ -93,6 +94,7 @@
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
             <tableExists tableName="trades"/>
+            <not><tableExists tableName="trades_y2026m05"/></not>
         </preConditions>
         <sql>
             CREATE TABLE trades_y2026m05 PARTITION OF trades
@@ -107,6 +109,7 @@
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
             <tableExists tableName="trades"/>
+            <not><tableExists tableName="trades_y2026m06"/></not>
         </preConditions>
         <sql>
             CREATE TABLE trades_y2026m06 PARTITION OF trades
@@ -121,6 +124,7 @@
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
             <tableExists tableName="trades"/>
+            <not><tableExists tableName="trades_y2026m07"/></not>
         </preConditions>
         <sql>
             CREATE TABLE trades_y2026m07 PARTITION OF trades
@@ -136,6 +140,7 @@
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
             <tableExists tableName="trades"/>
+            <not><tableExists tableName="trades_default"/></not>
         </preConditions>
         <sql>
             CREATE TABLE trades_default PARTITION OF trades DEFAULT;
@@ -154,6 +159,7 @@
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
             <tableExists tableName="trades"/>
+            <not><indexExists indexName="idx_trades_trade_date"/></not>
         </preConditions>
         <sql>
             CREATE INDEX IF NOT EXISTS idx_trades_trade_date ON trades (trade_date);
@@ -174,6 +180,8 @@
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
             <tableExists tableName="trades"/>
+            <not><foreignKeyConstraintExists foreignKeyTableName="trades" foreignKeyName="fk_trades_instrument"/></not>
+            <not><foreignKeyConstraintExists foreignKeyTableName="trades" foreignKeyName="fk_trades_counterparty"/></not>
         </preConditions>
         <addForeignKeyConstraint baseTableName="trades" baseColumnNames="instrument_id"
                                  constraintName="fk_trades_instrument"
@@ -193,6 +201,7 @@
             <dbms type="postgresql"/>
             <tableExists tableName="trades_legacy"/>
             <tableExists tableName="trades"/>
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM trades</sqlCheck>
         </preConditions>
         <sql>
             INSERT INTO trades (id, trade_ref, instrument_id, counterparty_id, asset_class,

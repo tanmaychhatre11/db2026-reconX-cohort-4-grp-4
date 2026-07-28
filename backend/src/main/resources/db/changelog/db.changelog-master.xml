@@ -19,10 +19,19 @@
 
     <include file="changes/001-init.xml"          relativeToChangelogFile="true"/>
     <include file="changes/002-schema.xml"        relativeToChangelogFile="true"/>
+    <changeSet id="tag-release-1-0" author="trainer">
+        <tagDatabase tag="release-1.0"/>
+    </changeSet>
     <include file="changes/003-jsonb.xml"         relativeToChangelogFile="true"/>
+    <changeSet id="tag-release-1-1" author="trainer">
+        <tagDatabase tag="release-1.1"/>
+    </changeSet>
     <include file="changes/004-partitioning.xml"  relativeToChangelogFile="true"/>
-    <include file="changes/005-mat-views.xml"     relativeToChangelogFile="true"/>
     <include file="changes/006-audit-and-recon.xml" relativeToChangelogFile="true"/>
+    <changeSet id="tag-release-1-2" author="trainer">
+        <tagDatabase tag="release-1.2"/>
+    </changeSet>
+    <include file="changes/005-mat-views.xml"     relativeToChangelogFile="true"/>
     <include file="changes/007-users-rbac.xml"    relativeToChangelogFile="true"/>
     <include file="changes/008-seed.xml"          relativeToChangelogFile="true"/>
 

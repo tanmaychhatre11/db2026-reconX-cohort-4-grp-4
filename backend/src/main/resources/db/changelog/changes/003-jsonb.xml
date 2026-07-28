@@ -18,16 +18,29 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
+        
+    <changeSet id="tag-release-1-0" author="trainer">
+        <tagDatabase tag="release-1.0"/>
+    </changeSet>
+
     <changeSet id="003-jsonb-on-instruments" author="trainer">
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
         </preConditions>
-        <sql>ALTER TABLE instruments ADD COLUMN metadata JSONB DEFAULT '{}'::JSONB NOT NULL;</sql>
-        <sql>CREATE INDEX idx_instruments_metadata_gin ON instruments USING GIN (metadata jsonb_path_ops);</sql>
+        <sql>
+            ALTER TABLE instruments ADD COLUMN metadata JSONB DEFAULT '{}'::JSONB NOT NULL;
+            CREATE INDEX idx_instruments_metadata_gin ON instruments USING GIN (metadata jsonb_path_ops);
+        </sql>
         <rollback>
-            <sql>DROP INDEX IF EXISTS idx_instruments_metadata_gin;</sql>
-            <sql>ALTER TABLE instruments DROP COLUMN metadata;</sql>
+            <sql>
+                DROP INDEX IF EXISTS idx_instruments_metadata_gin;
+                ALTER TABLE instruments DROP COLUMN metadata;
+            </sql>
         </rollback>
+    </changeSet>
+        
+    <changeSet id="tag-release-1-1" author="trainer">
+        <tagDatabase tag="release-1.1"/>
     </changeSet>
 
 </databaseChangeLog>

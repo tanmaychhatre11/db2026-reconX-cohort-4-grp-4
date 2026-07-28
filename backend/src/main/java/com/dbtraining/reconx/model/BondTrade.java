@@ -47,9 +47,9 @@ public final class BondTrade implements TradeType {
 
     /** Notional = faceValue in the bond's currency. */
    @Override
-public Money notional() {
-    return new Money(faceValue, currency);
-}
+    public Money notional() {
+        return new Money(faceValue, currency);
+    }
 
     public String isin()              { return isin; }
     public BigDecimal faceValue()     { return faceValue; }
@@ -93,32 +93,32 @@ public Money notional() {
         public Builder counterpartyId(long v)      { this.counterpartyId = v; return this; }
 
        public BondTrade build() {
-    Objects.requireNonNull(tradeRef, "tradeRef");
-    Objects.requireNonNull(isin, "isin");
-    Objects.requireNonNull(faceValue, "faceValue");
-    Objects.requireNonNull(couponRate, "couponRate");
-    Objects.requireNonNull(maturityDate, "maturityDate");
-    Objects.requireNonNull(currency, "currency");
-    Objects.requireNonNull(side, "side");
-    Objects.requireNonNull(tradeDate, "tradeDate");
+            Objects.requireNonNull(tradeRef, "tradeRef");
+            Objects.requireNonNull(isin, "isin");
+            Objects.requireNonNull(faceValue, "faceValue");
+            Objects.requireNonNull(couponRate, "couponRate");
+            Objects.requireNonNull(maturityDate, "maturityDate");
+            Objects.requireNonNull(currency, "currency");
+            Objects.requireNonNull(side, "side");
+            Objects.requireNonNull(tradeDate, "tradeDate");
 
-    if (couponRate.signum() < 0) {
-        throw new IllegalStateException("couponRate cannot be negative");
-    }
+            if (couponRate.signum() < 0) {
+                throw new IllegalStateException("couponRate cannot be negative");
+            }
 
-    if (faceValue.signum() <= 0) {
-        throw new IllegalStateException("faceValue must be positive");
-    }
+            if (faceValue.signum() <= 0) {
+                throw new IllegalStateException("faceValue must be positive");
+            }
 
-    if (maturityDate.isBefore(tradeDate)) {
-        throw new IllegalStateException("maturityDate cannot be before tradeDate");
-    }
+            if (maturityDate.isBefore(tradeDate)) {
+                throw new IllegalStateException("maturityDate cannot be before tradeDate");
+            }
 
-    if (isin.length() != 12) {
-        throw new IllegalStateException("ISIN must be 12 characters");
-    }
+            if (isin.length() != 12) {
+                throw new IllegalStateException("ISIN must be 12 characters");
+            }
 
-    return new BondTrade(this);
-}
+            return new BondTrade(this);
+        }
     }
 }

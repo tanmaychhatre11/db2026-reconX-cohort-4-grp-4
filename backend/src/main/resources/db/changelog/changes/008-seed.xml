@@ -17,7 +17,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
-    <changeSet id="008-seed-counterparties" author="trainer">
+    <changeSet id="008-seed-counterparties" author="trainer" context="dev,test,uat" runAlways="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM counterparties</sqlCheck>
+        </preConditions>
         <loadData file="data/counterparties.csv" tableName="counterparties"
                   separator="," relativeToChangelogFile="true">
             <column name="id" type="NUMERIC"/>
@@ -30,7 +33,10 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="008-seed-instruments" author="trainer">
+    <changeSet id="008-seed-instruments" author="trainer" context="dev,test,uat" runAlways="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM instruments</sqlCheck>
+        </preConditions>
         <loadData file="data/instruments.csv" tableName="instruments"
                   separator="," relativeToChangelogFile="true">
             <column name="id" type="NUMERIC"/>
@@ -45,7 +51,10 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="008-seed-users" author="trainer">
+    <changeSet id="008-seed-users" author="trainer" context="dev,test,uat" runAlways="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM users</sqlCheck>
+        </preConditions>
         <!-- Real BCrypt hashes (cost=10) for admin123 / trader123 / viewer123 / recon123.
              Generated via: htpasswd -bnBC 10 "" <pw> | tr -d ':\n'
              Spring Security's BCryptPasswordEncoder accepts both $2a$ and $2y$ prefixes. -->
@@ -75,9 +84,10 @@
     </changeSet>
 
     <!-- TICKET-ADV009 — Populate JSONB metadata for seeded instruments -->
-    <changeSet id="008-seed-instruments-metadata" author="trainer">
+    <changeSet id="008-seed-instruments-metadata" author="trainer" context="dev,test,uat" runAlways="true">
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM instruments WHERE metadata &lt;&gt; '{}'::jsonb</sqlCheck>
         </preConditions>
         <sql>
 UPDATE instruments SET metadata = '{"sector":"Technology","exchange":"XETR","issuer":{"name":"SAP SE","country":"DE","lei":"529900D6BF99LW9R2E68"},"rating":{"sp":"AA-","moody":"Aa3"},"tags":["DAX40","ESG-tier-1"]}'::JSONB WHERE symbol = 'SAP.DE';

@@ -1,6 +1,6 @@
 package com.dbtraining.reconx.service;
 
-import com.dbtraining.reconx.model.ReconResult;
+import com.dbtraining.reconx.dto.ReconResult;
 import com.dbtraining.reconx.model.ReconSummary;
 
 import java.util.Set;
@@ -31,7 +31,7 @@ public class ReconSummaryCollector
         public void add(ReconResult result) {
             total++;
 
-            if (result.isMatched()) {
+            if (result.status() == ReconResult.Status.MATCHED) {
                 matched++;
             } else {
                 broken++;

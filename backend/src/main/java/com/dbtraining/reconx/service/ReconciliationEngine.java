@@ -22,16 +22,6 @@ import java.util.ArrayList;
  * TICKET-ADV037 — CompletableFuture: parallel recon by counterparty
  * TICKET-ADV047 — Edge cases: empty/single/all-mismatched inputs handled
  * TICKET-ADV084 — @Timed exports reconciliation_duration_seconds histogram
- *
- * WHAT:    Compares internal trades against external (counterparty) trades and
- *          returns a ReconResult per internal trade (MATCHED or BREAK).
- * HOW:     Index externals by tradeRef, then stream internals and look each
- *          up. CompletableFuture variant batches by counterparty for
- *          throughput on large books.
- * WHY:     This is the spine of the product. Everything else (REST API,
- *          Kafka consumers, dashboard) ultimately calls into here.
- * OBSERVE: Histogram appears at /actuator/prometheus under
- *          reconciliation_duration_seconds.
  * ============================================================================
  */
 @Service
@@ -45,94 +35,138 @@ public class ReconciliationEngine {
     public List<ReconResult> reconcile(List<TradeType> internal,
                                        List<TradeType> external,
                                        ReconciliationRule rule) {
-        if (internal == null || internal.isEmpty()) return List.of();
 
-        Map<String, TradeType> externalByRef = (external == null ? List.<TradeType>of() : external)
-                .stream()
-                .collect(Collectors.toMap(t -> t.tradeRef().value(), Function.identity(), (a, b) -> a));
+        if (internal == null || internal.isEmpty()) {
+            return List.of();
+        }
+
+        Map<String, TradeType> externalByRef =
+                (external == null ? List.<TradeType>of() : external)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                t -> t.tradeRef().value(),
+                                Function.identity(),
+                                (a, b) -> a
+                        ));
 
         return internal.parallelStream()
-                .map(in -> matchOne(in, externalByRef.get(in.tradeRef().value()), rule))
+                .map(in -> matchOne(
+                        in,
+                        externalByRef.get(in.tradeRef().value()),
+                        rule
+                ))
                 .toList();
     }
 
+
     /**
-     * TICKET-ADV037 — split by counterparty, reconcile each batch concurrently,
-     * combine into a single result list. Caller passes one external feed per
-     * counterparty (typical real-world shape).
+     * TICKET-ADV037 — split by counterparty and reconcile concurrently.
      */
     public CompletableFuture<List<ReconResult>> reconcileByCounterparty(
             Map<Long, List<TradeType>> internalByCp,
             Map<Long, List<TradeType>> externalByCp,
             ReconciliationRule rule) {
-        // TODO(TICKET-ADV037): for each counterparty key in internalByCp launch a
-        //   CompletableFuture.supplyAsync(() -> reconcile(...)). Combine via
-        //   CompletableFuture.allOf(...).thenApply(v -> futures.stream()
-        //       .flatMap(f -> f.join().stream()).toList()).
-        
+
         List<CompletableFuture<List<ReconResult>>> futures =
-                new ArrayList<>();
-
-        for (Long counterpartyId : internalByCp.keySet()) {
-
-            CompletableFuture<List<ReconResult>> future =
-                    CompletableFuture.supplyAsync(
-                            () -> reconcile(
-                                    internalByCp.get(counterpartyId),
-                                    externalByCp.get(counterpartyId),
-                                    rule
-                            ),
-                            executor   // TICKET-ADV037 CHANGE: use owned executor
-                    );
-
-            futures.add(future);
-        }
+                internalByCp.entrySet()
+                        .stream()
+                        .map(entry ->
+                                CompletableFuture.supplyAsync(() ->
+                                        reconcile(
+                                                entry.getValue(),
+                                                externalByCp.getOrDefault(
+                                                        entry.getKey(),
+                                                        List.of()
+                                                ),
+                                                rule
+                                        )
+                                )
+                        )
+                        .toList();
 
         return CompletableFuture.allOf(
-                futures.toArray(new CompletableFuture[0])
-        ).thenApply(v ->
-                futures.stream()
-                        .flatMap(f -> f.join().stream())
-                        .toList()
+                        futures.toArray(new CompletableFuture[0])
+                )
+                .thenApply(v ->
+                        futures.stream()
+                                .flatMap(f -> f.join().stream())
+                                .toList()
+                );
+    }
+
+
+    private ReconResult matchOne(TradeType internal,
+                                 TradeType external,
+                                 ReconciliationRule rule) {
+
+        String ref = internal.tradeRef().value();
+
+        if (external == null) {
+            return ReconResult.breakResult(
+                    ref,
+                    "MISSING_EXTERNAL",
+                    "No external trade found for " + ref
+            );
+        }
+
+        BigDecimal[] iPair = priceQty(internal);
+        BigDecimal[] ePair = priceQty(external);
+
+        if (rule.matches(
+                iPair[0],
+                iPair[1],
+                ePair[0],
+                ePair[1]
+        )) {
+            return ReconResult.matched(ref);
+        }
+
+        return ReconResult.breakResult(
+                ref,
+                "VALUE_MISMATCH",
+                "internal=%s/%s external=%s/%s"
+                        .formatted(
+                                iPair[0],
+                                iPair[1],
+                                ePair[0],
+                                ePair[1]
+                        )
         );
     }
 
-    public void shutdown() {
-        executor.shutdown();
-    }
-
-
-    private ReconResult matchOne(TradeType internal, TradeType external, ReconciliationRule rule) {
-        String ref = internal.tradeRef().value();
-        if (external == null) {
-            return ReconResult.breakResult(ref, "MISSING_EXTERNAL",
-                    "No external trade found for " + ref);
-        }
-        BigDecimal[] iPair = priceQty(internal);
-        BigDecimal[] ePair = priceQty(external);
-        if (rule.matches(iPair[0], iPair[1], ePair[0], ePair[1])) {
-            return ReconResult.matched(ref);
-        }
-        return ReconResult.breakResult(ref, "VALUE_MISMATCH",
-                "internal=%s/%s external=%s/%s".formatted(iPair[0], iPair[1], ePair[0], ePair[1]));
-    }
 
     private BigDecimal[] priceQty(TradeType t) {
-    if (t instanceof com.dbtraining.reconx.model.EquityTrade e) {
-        return new BigDecimal[]{e.price(), e.quantity()};
-    }
-    if (t instanceof com.dbtraining.reconx.model.FXTrade fx) {
-        return new BigDecimal[]{fx.fxRate(), fx.notionalCcy1()};
-    }
-    if (t instanceof com.dbtraining.reconx.model.BondTrade b) {
-        return new BigDecimal[]{b.couponRate(), b.faceValue()};
-    }
-    if (t instanceof com.dbtraining.reconx.model.DerivativeTrade d) {
-        return new BigDecimal[]{d.strike(), d.quantity()};
-    }
 
-    throw new IllegalStateException(
-            "Unsupported trade type: " + t.getClass().getName()
-    );
-}
+        if (t instanceof com.dbtraining.reconx.model.EquityTrade e) {
+            return new BigDecimal[]{
+                    e.price(),
+                    e.quantity()
+            };
+        }
+
+        if (t instanceof com.dbtraining.reconx.model.FXTrade fx) {
+            return new BigDecimal[]{
+                    fx.fxRate(),
+                    fx.notionalCcy1()
+            };
+        }
+
+        if (t instanceof com.dbtraining.reconx.model.BondTrade b) {
+            return new BigDecimal[]{
+                    b.couponRate(),
+                    b.faceValue()
+            };
+        }
+
+        if (t instanceof com.dbtraining.reconx.model.DerivativeTrade d) {
+            return new BigDecimal[]{
+                    d.strike(),
+                    d.quantity()
+            };
+        }
+
+        throw new IllegalStateException(
+                "Unsupported trade type: " + t.getClass().getName()
+        );
+    }
 }

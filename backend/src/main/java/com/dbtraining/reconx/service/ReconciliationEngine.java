@@ -96,6 +96,5 @@ public class ReconciliationEngine {
         }
         throw new IllegalStateException("Unsupported trade type: " + t.getClass().getName());
     }
-
-    
 }
+

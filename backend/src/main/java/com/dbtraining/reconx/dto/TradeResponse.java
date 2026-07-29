@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
-/** TICKET-ADV053 — TradeResponse DTO returned by GET / POST endpoints. */
+/** done: TICKET-ADV053 — TradeResponse DTO returned by GET / POST endpoints. */
 public record TradeResponse(
         Long id,
         String tradeRef,

@@ -1,8 +1,7 @@
 package com.dbtraining.reconx.dto;
 
 import com.dbtraining.reconx.repository.entity.Trade;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 
 /**
  * ============================================================================
@@ -23,4 +22,12 @@ public interface TradeMapper {
     @Mapping(source = "counterparty.id", target = "counterpartyId")
     @Mapping(source = "counterparty.name", target = "counterpartyName")
     TradeResponse toResponse(Trade trade);
+
+    @Mapping(target = "id",            ignore = true)
+    @Mapping(target = "counterparty",  ignore = true)   // wired by service from id
+    @Mapping(target = "instrument",    ignore = true)
+    @Mapping(target = "status",        ignore = true)   // defaulted to PENDING
+    @Mapping(target = "createdAt",     ignore = true)
+    @Mapping(target = "modifiedAt",    ignore = true)
+    Trade toEntity(TradeRequest req);
 }

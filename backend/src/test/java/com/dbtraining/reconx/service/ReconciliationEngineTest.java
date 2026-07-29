@@ -32,28 +32,32 @@ class ReconciliationEngineTest {
     }
 
     @ParameterizedTest(name = "price diff {0} stays within 1% tolerance -> MATCHED")
-@ValueSource(strings = {"0.10", "0.50", "0.99"})
-void testReconcile_priceTolerance_withinThreshold(String diff) {
+    @ValueSource(strings = {"0.10", "0.50", "0.99"})
+    void testReconcile_priceTolerance_withinThreshold(String diff) {
 
-    BigDecimal basePrice = new BigDecimal("100.00");
+        // given
+        BigDecimal basePrice = new BigDecimal("100.00");
 
-    EquityTrade internal = equity("EQU-20260603-0002", "100.00", "1000");
+        EquityTrade internal = equity("EQU-20260603-0002", "100.00", "1000");
 
-    EquityTrade external = equity(
-            "EQU-20260603-0002",
-            basePrice.add(new BigDecimal(diff)).toPlainString(),
-            "1000"
-    );
+        EquityTrade external = equity(
+                "EQU-20260603-0002",
+                basePrice.add(new BigDecimal(diff)).toPlainString(),
+                "1000"
+        );
 
-    List<ReconResult> out = engine.reconcile(
-            List.of(internal),
-            List.of(external),
-            ReconciliationRule.PRICE_TOLERANCE_1PCT
-    );
+        // when
+        List<ReconResult> out = engine.reconcile(
+                List.of(internal),
+                List.of(external),
+                ReconciliationRule.PRICE_TOLERANCE_1PCT
+        );
 
-    assertThat(out.get(0).status())
-            .isEqualTo(ReconResult.Status.MATCHED);
-}
+        // then
+        assertThat(out).hasSize(1);
+        assertThat(out.get(0).status())
+                .isEqualTo(ReconResult.Status.MATCHED);
+    }
 
     @Test
     void testReconcile_missingCounterpartyTrade_returnsBreak() {

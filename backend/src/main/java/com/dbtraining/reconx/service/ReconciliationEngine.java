@@ -81,18 +81,20 @@ public class ReconciliationEngine {
                 "internal=%s/%s external=%s/%s".formatted(iPair[0], iPair[1], ePair[0], ePair[1]));
     }
 
-   private BigDecimal[] priceQty(TradeType t) {
-
-    if (t instanceof com.dbtraining.reconx.model.EquityTrade e) {
-        return new BigDecimal[]{e.price(), e.quantity()};
-    }
-
-    if (t instanceof com.dbtraining.reconx.model.FXTrade fx) {
-        return new BigDecimal[]{fx.fxRate(), fx.notionalCcy1()};
-    }
-
-    if (t instanceof com.dbtraining.reconx.model.BondTrade b) {
-        return new BigDecimal[]{b.couponRate(), b.faceValue()};
+    private BigDecimal[] priceQty(TradeType t) {
+        if (t instanceof com.dbtraining.reconx.model.EquityTrade e) {
+            return new BigDecimal[]{e.price(), e.quantity()};
+        }
+        if (t instanceof com.dbtraining.reconx.model.FXTrade fx) {
+            return new BigDecimal[]{fx.fxRate(), fx.notionalCcy1()};
+        }
+        if (t instanceof com.dbtraining.reconx.model.BondTrade b) {
+            return new BigDecimal[]{b.couponRate(), b.faceValue()};
+        }
+        if (t instanceof com.dbtraining.reconx.model.DerivativeTrade d) {
+            return new BigDecimal[]{d.strike(), d.quantity()};
+        }
+        throw new IllegalStateException("Unsupported trade type: " + t.getClass().getName());
     }
 
     if (t instanceof com.dbtraining.reconx.model.DerivativeTrade d) {

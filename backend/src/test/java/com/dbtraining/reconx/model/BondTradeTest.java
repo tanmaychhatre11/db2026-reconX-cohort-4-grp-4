@@ -54,12 +54,17 @@ class BondTradeTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("maturityDate");
     }
-
+    
     @Test
     void equality_byTradeRef() {
-        // TODO(TICKET-ADV028): two BondTrades with the same tradeRef are equal and share hashCode;
-        //                     a third with a different tradeRef is not equal.
-        org.junit.jupiter.api.Assertions.fail("TICKET-ADV028 not implemented yet");
+        BondTrade a = sampleBond("BND-20260603-0001");
+        BondTrade b = sampleBond("BND-20260603-0001");
+        BondTrade c = sampleBond("BND-20260603-0002");
+
+        assertThat(a).isEqualTo(b);
+        assertThat(a.hashCode()).isEqualTo(b.hashCode());
+
+        assertThat(a).isNotEqualTo(c);
     }
 
     private BondTrade sampleBond(String ref) {

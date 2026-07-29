@@ -45,25 +45,14 @@ public class TradeAnalyticsService {
      * EquityTrade has a meaningful price-volume pair.
      */
     public Map<String, BigDecimal> vwapByInstrument(List<EquityTrade> equityTrades) {
-        if (equityTrades == null || equityTrades.isEmpty()) {
-            return Map.of();
-        }
-
         return equityTrades.stream()
                 .collect(Collectors.groupingBy(
                         EquityTrade::instrumentSymbol,
-                        Collectors.collectingAndThen(Collectors.toList(), list -> {
-                            BigDecimal totalNotional = list.stream()
-                                    .map(t -> t.price().multiply(t.quantity()))
-                                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-                            BigDecimal totalQty = list.stream()
-                                    .map(EquityTrade::quantity)
-                                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-                            if (totalQty.compareTo(BigDecimal.ZERO) == 0) {
-                                return BigDecimal.ZERO;
-                            }
-                            return totalNotional.divide(totalQty, 8, RoundingMode.HALF_UP);
-                        })));
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                trades -> trades.stream().collect(new VwapCollector())
+                        )
+                ));
     }
 
     /** TICKET-ADV036 — {@code P&amp;L} per instrument symbol (sign by Side). */

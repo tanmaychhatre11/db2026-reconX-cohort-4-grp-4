@@ -6,7 +6,8 @@
           domain/common). In the TRAINER COPY we ship a single runnable module
           to keep the answer key easy to boot. The trainer guide day4 shows the
           multi-module split.
- HOW:     Standard Spring Boot 3 parent + java.version=25.
+ HOW:     Standard Spring Boot 3 parent + 
+=25.
  WHY:     Students need a project that runs in one `mvn spring-boot:run`. Once
           they pass Day 4 they can split this into modules and re-import.
  OBSERVE: `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev` boots cleanly,
@@ -33,7 +34,7 @@
     <description>ReconX — Enterprise Trade Reconciliation Platform (Advanced Track)</description>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>25</java.version>
         <mapstruct.version>1.6.2</mapstruct.version>
         <jjwt.version>0.12.6</jjwt.version>
         <testcontainers.version>1.21.4</testcontainers.version>
@@ -224,7 +225,7 @@
             <plugin>
     <groupId>org.jacoco</groupId>
     <artifactId>jacoco-maven-plugin</artifactId>
-    <version>0.8.12</version>
+    <version>0.8.14</version>
 
     <executions>
 

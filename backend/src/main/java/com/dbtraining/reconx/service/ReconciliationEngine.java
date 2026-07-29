@@ -10,8 +10,11 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 /**
  * ============================================================================
@@ -24,10 +27,11 @@ import java.util.stream.Collectors;
 @Service
 public class ReconciliationEngine {
 
-    @Timed(value = "reconciliation.duration",
-            description = "Wall time of reconcile()",
-            percentiles = {0.5, 0.95, 0.99},
-            histogram = true)
+     private final ExecutorService executor =
+            Executors.newFixedThreadPool(4);
+
+    @Timed(value = "reconciliation.duration", description = "Wall time of reconcile()",
+           percentiles = {0.5, 0.95, 0.99}, histogram = true)
     public List<ReconResult> reconcile(List<TradeType> internal,
                                        List<TradeType> external,
                                        ReconciliationRule rule) {

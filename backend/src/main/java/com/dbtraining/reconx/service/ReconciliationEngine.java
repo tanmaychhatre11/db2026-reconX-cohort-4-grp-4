@@ -118,11 +118,18 @@ public class ReconciliationEngine {
     }
 
     private BigDecimal[] priceQty(TradeType t) {
-        return switch (t) {
-            case com.dbtraining.reconx.model.EquityTrade e     -> new BigDecimal[]{e.price(),  e.quantity()};
-            case com.dbtraining.reconx.model.FXTrade fx        -> new BigDecimal[]{fx.fxRate(), fx.notionalCcy1()};
-            case com.dbtraining.reconx.model.BondTrade b       -> new BigDecimal[]{b.couponRate(), b.faceValue()};
-            case com.dbtraining.reconx.model.DerivativeTrade d -> new BigDecimal[]{d.strike(), d.quantity()};
-        };
+        if (t instanceof com.dbtraining.reconx.model.EquityTrade e) {
+            return new BigDecimal[]{e.price(), e.quantity()};
+        }
+        if (t instanceof com.dbtraining.reconx.model.FXTrade fx) {
+            return new BigDecimal[]{fx.fxRate(), fx.notionalCcy1()};
+        }
+        if (t instanceof com.dbtraining.reconx.model.BondTrade b) {
+            return new BigDecimal[]{b.couponRate(), b.faceValue()};
+        }
+        if (t instanceof com.dbtraining.reconx.model.DerivativeTrade d) {
+            return new BigDecimal[]{d.strike(), d.quantity()};
+        }
+        throw new IllegalStateException("Unsupported trade type: " + t.getClass().getName());
     }
 }

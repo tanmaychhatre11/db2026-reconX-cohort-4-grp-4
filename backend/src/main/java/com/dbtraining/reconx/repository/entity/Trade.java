@@ -2,6 +2,7 @@ package com.dbtraining.reconx.repository.entity;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -30,6 +31,7 @@ import java.util.Objects;
  *          and a row appears in the Envers revision table.
  * ============================================================================
  */
+@Audited(targetAuditMode = org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED)
 @Entity
 @Table(name = "trades", indexes = {
     @Index(name = "idx_trades_trade_date", columnList = "trade_date"),

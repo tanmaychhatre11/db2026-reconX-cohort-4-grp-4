@@ -10,8 +10,11 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 /**
  * ============================================================================
@@ -33,6 +36,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ReconciliationEngine {
+
+     private final ExecutorService executor =
+            Executors.newFixedThreadPool(4);
 
     @Timed(value = "reconciliation.duration", description = "Wall time of reconcile()",
            percentiles = {0.5, 0.95, 0.99}, histogram = true)
@@ -65,8 +71,38 @@ public class ReconciliationEngine {
         //   CompletableFuture.supplyAsync(() -> reconcile(...)). Combine via
         //   CompletableFuture.allOf(...).thenApply(v -> futures.stream()
         //       .flatMap(f -> f.join().stream()).toList()).
-        throw new UnsupportedOperationException("TICKET-ADV037");
+        
+        List<CompletableFuture<List<ReconResult>>> futures =
+                new ArrayList<>();
+
+        for (Long counterpartyId : internalByCp.keySet()) {
+
+            CompletableFuture<List<ReconResult>> future =
+                    CompletableFuture.supplyAsync(
+                            () -> reconcile(
+                                    internalByCp.get(counterpartyId),
+                                    externalByCp.get(counterpartyId),
+                                    rule
+                            ),
+                            executor   // TICKET-ADV037 CHANGE: use owned executor
+                    );
+
+            futures.add(future);
+        }
+
+        return CompletableFuture.allOf(
+                futures.toArray(new CompletableFuture[0])
+        ).thenApply(v ->
+                futures.stream()
+                        .flatMap(f -> f.join().stream())
+                        .toList()
+        );
     }
+
+    public void shutdown() {
+        executor.shutdown();
+    }
+
 
     private ReconResult matchOne(TradeType internal, TradeType external, ReconciliationRule rule) {
         // TODO(TICKET-ADV033): if external is null return ReconResult.breakResult(ref, "MISSING_EXTERNAL", ...).

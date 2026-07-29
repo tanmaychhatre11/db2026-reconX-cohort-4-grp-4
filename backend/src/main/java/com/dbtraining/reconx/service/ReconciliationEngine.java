@@ -81,12 +81,24 @@ public class ReconciliationEngine {
                 "internal=%s/%s external=%s/%s".formatted(iPair[0], iPair[1], ePair[0], ePair[1]));
     }
 
-    private BigDecimal[] priceQty(TradeType t) {
-        return switch (t) {
-            case com.dbtraining.reconx.model.EquityTrade e     -> new BigDecimal[]{e.price(),  e.quantity()};
-            case com.dbtraining.reconx.model.FXTrade fx        -> new BigDecimal[]{fx.fxRate(), fx.notionalCcy1()};
-            case com.dbtraining.reconx.model.BondTrade b       -> new BigDecimal[]{b.couponRate(), b.faceValue()};
-            case com.dbtraining.reconx.model.DerivativeTrade d -> new BigDecimal[]{d.strike(), d.quantity()};
-        };
+   private BigDecimal[] priceQty(TradeType t) {
+
+    if (t instanceof com.dbtraining.reconx.model.EquityTrade e) {
+        return new BigDecimal[]{e.price(), e.quantity()};
     }
+
+    if (t instanceof com.dbtraining.reconx.model.FXTrade fx) {
+        return new BigDecimal[]{fx.fxRate(), fx.notionalCcy1()};
+    }
+
+    if (t instanceof com.dbtraining.reconx.model.BondTrade b) {
+        return new BigDecimal[]{b.couponRate(), b.faceValue()};
+    }
+
+    if (t instanceof com.dbtraining.reconx.model.DerivativeTrade d) {
+        return new BigDecimal[]{d.strike(), d.quantity()};
+    }
+
+    throw new IllegalArgumentException("Unknown trade type: " + t.getClass().getName());
+}
 }

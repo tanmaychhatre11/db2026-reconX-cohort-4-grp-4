@@ -96,11 +96,5 @@ public class ReconciliationEngine {
         }
         throw new IllegalStateException("Unsupported trade type: " + t.getClass().getName());
     }
-
-    if (t instanceof com.dbtraining.reconx.model.DerivativeTrade d) {
-        return new BigDecimal[]{d.strike(), d.quantity()};
-    }
-
-    throw new IllegalArgumentException("Unknown trade type: " + t.getClass().getName());
 }
-}
+

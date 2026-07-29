@@ -2,6 +2,8 @@ package com.dbtraining.reconx.service;
 
 import com.dbtraining.reconx.dto.ReconResult;
 import com.dbtraining.reconx.model.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -29,15 +31,32 @@ class ReconciliationEngineTest {
         assertThat(results.get(0).tradeRef()).isEqualTo("EQU-20260602-0001");
     }
 
-    @Test
-    void testReconcile_priceTolerance_withinThreshold() {
-        List<ReconResult> results = engine.reconcile(
-                List.of(equity("EQU-20260602-0002", "100.00", "10")),
-                List.of(equity("EQU-20260602-0002", "100.50", "10")),
-                ReconciliationRule.PRICE_TOLERANCE_1PCT);
+    @ParameterizedTest(name = "price diff {0} stays within 1% tolerance -> MATCHED")
+    @ValueSource(strings = {"0.10", "0.50", "0.99"})
+    void testReconcile_priceTolerance_withinThreshold(String diff) {
 
-        assertThat(results).hasSize(1);
-        assertThat(results.get(0).status()).isEqualTo(ReconResult.Status.MATCHED);
+        // given
+        BigDecimal basePrice = new BigDecimal("100.00");
+
+        EquityTrade internal = equity("EQU-20260603-0002", "100.00", "1000");
+
+        EquityTrade external = equity(
+                "EQU-20260603-0002",
+                basePrice.add(new BigDecimal(diff)).toPlainString(),
+                "1000"
+        );
+
+        // when
+        List<ReconResult> out = engine.reconcile(
+                List.of(internal),
+                List.of(external),
+                ReconciliationRule.PRICE_TOLERANCE_1PCT
+        );
+
+        // then
+        assertThat(out).hasSize(1);
+        assertThat(out.get(0).status())
+                .isEqualTo(ReconResult.Status.MATCHED);
     }
 
     @Test

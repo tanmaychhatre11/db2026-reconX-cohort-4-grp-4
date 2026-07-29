@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 /**
  * ============================================================================
- * TICKET-ADV053 — TradeRequest DTO (POST body)
+ * done: TICKET-ADV053 — TradeRequest DTO (POST body)
  * TICKET-ADV029 — JSR-380 validation annotations live on the DTO, not the entity
  *
  * WHY:    Putting @Pattern/@Positive/@NotNull on the JPA entity couples

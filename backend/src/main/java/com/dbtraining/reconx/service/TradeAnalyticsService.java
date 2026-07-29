@@ -46,17 +46,17 @@ public class TradeAnalyticsService {
     }
 
     /**
-     * TICKET-ADV035 — VWAP = SUM(price * qty) / SUM(qty).
+     * TICKET-ADV035 — VWAP = SUM(price * qty) / SUM(qty), via the custom VwapCollector.
      */
     public Map<String, BigDecimal> vwapByInstrument(List<EquityTrade> equityTrades) {
+        if (equityTrades == null || equityTrades.isEmpty()) {
+            return Map.of();
+        }
+
         return equityTrades.stream()
                 .collect(Collectors.groupingBy(
                         EquityTrade::instrumentSymbol,
-                        Collectors.collectingAndThen(
-                                Collectors.toList(),
-                                trades -> trades.stream().collect(new VwapCollector())
-                        )
-                ));
+                        new VwapCollector()));
     }
 
     /**
@@ -79,24 +79,19 @@ public class TradeAnalyticsService {
     }
 
     private long counterpartyIdOf(TradeType t) {
-
         if (t instanceof EquityTrade e) {
             return e.counterpartyId();
         }
-
         if (t instanceof FXTrade fx) {
             return fx.counterpartyId();
         }
-
         if (t instanceof BondTrade b) {
             return b.counterpartyId();
         }
-
         if (t instanceof DerivativeTrade d) {
             return d.counterpartyId();
         }
-
-        throw new IllegalArgumentException("Unknown TradeType: " + t.getClass().getName());
+        throw new IllegalStateException("Unsupported trade type: " + t.getClass().getName());
     }
 
     public record NotionalSummary(long count, BigDecimal total) {

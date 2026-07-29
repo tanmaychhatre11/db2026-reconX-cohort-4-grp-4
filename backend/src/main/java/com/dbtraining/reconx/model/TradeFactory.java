@@ -4,10 +4,23 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 
+/**
+ * TICKET-ADV023 — Factory boundary for loosely-typed trade payloads.
+ *
+ * Creates the correct concrete {@link TradeType} from an asset class
+ * discriminator and a generic parameter map.
+ */
 public final class TradeFactory {
 
     private TradeFactory() { }
 
+    /**
+     * Create a typed trade from an asset-class string and payload map.
+     * @param assetClass discriminator such as "EQUITY", "FX", "BOND", or "DERIVATIVE"
+     * @param p payload values keyed by domain field names
+     * @return the built TradeType instance
+     * @throws IllegalArgumentException if the asset class is unknown
+     */
     public static TradeType create(String assetClass, Map<String, Object> p) {
         TradeType.AssetClass ac = TradeType.AssetClass.valueOf(assetClass.toUpperCase());
         return switch (ac) {

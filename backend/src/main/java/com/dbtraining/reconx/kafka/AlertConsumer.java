@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * WHAT:    Subscribes to `system-alerts` and (for the training project) logs
  *          the payload. In a real environment this is where Slack / PagerDuty
  *          / e-mail fan-out would happen.
- * HOW:     @KafkaListener on the `system-alerts` topic, groupId
+ * HOW:     {@literal @KafkaListener} on the `system-alerts` topic, groupId
  *          `alert-service`.
  * WHY:     Decouples alert producers (any service) from alert sinks
  *          (notification channels).

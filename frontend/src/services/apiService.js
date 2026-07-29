@@ -3,7 +3,7 @@ const BASE = '/api';
 
 function authHeaders() {
   // TODO(TICKET-ADV112): read 'reconx-token' from sessionStorage and return
-  //                     { Authorization: `Bearer <token>` }. Return {} when
+  //                     {@code Authorization: Bearer <token>}. Return {} when
   //                     no token is set (login + signup endpoints).
   return {};
 }

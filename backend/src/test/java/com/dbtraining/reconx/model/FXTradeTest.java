@@ -74,12 +74,17 @@ class FXTradeTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("fxRate");
     }
-
+    
     @Test
     void equality_byTradeRef() {
-        // TODO(TICKET-ADV028): two FXTrades with the same tradeRef are equal and share hashCode;
-        //                     a third with a different tradeRef is not equal.
-        org.junit.jupiter.api.Assertions.fail("TICKET-ADV028 not implemented yet");
+        FXTrade a = sampleFx("FXT-20260603-0001");
+        FXTrade b = sampleFx("FXT-20260603-0001");
+        FXTrade c = sampleFx("FXT-20260603-0002");
+
+        assertThat(a).isEqualTo(b);
+        assertThat(a.hashCode()).isEqualTo(b.hashCode());
+
+        assertThat(a).isNotEqualTo(c);
     }
 
     private FXTrade sampleFx(String ref) {

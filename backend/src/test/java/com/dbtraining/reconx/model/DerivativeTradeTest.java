@@ -79,9 +79,14 @@ class DerivativeTradeTest {
 
     @Test
     void equality_byTradeRef() {
-        // TODO(TICKET-ADV028): two DerivativeTrades with the same tradeRef are equal and share hashCode;
-        //                     a third with a different tradeRef is not equal.
-        org.junit.jupiter.api.Assertions.fail("TICKET-ADV028 not implemented yet");
+        DerivativeTrade a = sampleDerivative("DER-20260603-0001");
+        DerivativeTrade b = sampleDerivative("DER-20260603-0001");
+        DerivativeTrade c = sampleDerivative("DER-20260603-0002");
+
+        assertThat(a).isEqualTo(b);
+        assertThat(a.hashCode()).isEqualTo(b.hashCode());
+
+        assertThat(a).isNotEqualTo(c);
     }
 
     private DerivativeTrade sampleDerivative(String ref) {

@@ -22,13 +22,14 @@ import java.time.LocalDate;
  * ============================================================================
  *
  *  TODO(TICKET-ADV056):
- *    public static Specification<Trade> hasStatus(String status) {
+ *    <pre>
+ *    public static {@code Specification<Trade>} hasStatus(String status) {
  *        return (root, q, cb) -> status == null
  *                ? cb.conjunction()
  *                : cb.equal(root.get("status"), status);
  *    }
  *
- *    public static Specification<Trade> tradeDateBetween(LocalDate from, LocalDate to) {
+ *    public static {@code Specification<Trade>} tradeDateBetween(LocalDate from, LocalDate to) {
  *        return (root, q, cb) -> {
  *            if (from == null && to == null) return cb.conjunction();
  *            if (from == null) return cb.lessThanOrEqualTo(root.get("tradeDate"), to);
@@ -37,14 +38,15 @@ import java.time.LocalDate;
  *        };
  *    }
  *
- *    public static Specification<Trade> hasCounterparty(Long counterpartyId) {
+ *    public static {@code Specification<Trade>} hasCounterparty(Long counterpartyId) {
  *        return (root, q, cb) -> counterpartyId == null
  *                ? cb.conjunction()
  *                : cb.equal(root.get("counterparty").get("id"), counterpartyId);
  *    }
+ *    </pre>
  *
- *  HINT: A `null` field path (`root.get("counterparty").get("id")`) will
- *        force a JOIN — fine for an `equal` but be careful with `like`.
+ *  HINT: A {@code null} field path ({@code root.get("counterparty").get("id")}) will
+ *        force a JOIN — fine for an {@code equal} but be careful with {@code like}.
  * ============================================================================
  */
 public final class TradeSpecifications {

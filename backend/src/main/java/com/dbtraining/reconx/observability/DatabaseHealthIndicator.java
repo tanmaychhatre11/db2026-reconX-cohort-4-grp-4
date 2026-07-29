@@ -18,7 +18,7 @@ import javax.sql.DataSource;
  *          gives us a controllable timeout AND visible latency for SRE
  *          dashboards.
  * OBSERVE: GET /api/actuator/health/database -> `{"status":"UP",
- *          "details":{"latencyMs": <number>}}`.
+ *          "details":{"latencyMs": {@code <number>}}}`.
  * ============================================================================
  *
  *  TODO(TICKET-ADV059):

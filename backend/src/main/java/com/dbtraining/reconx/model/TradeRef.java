@@ -21,6 +21,17 @@ public record TradeRef(String value) {
 
     private static final Pattern PATTERN = Pattern.compile("^[A-Z]{3}-\\d{8}-\\d{4}$");
 
+    /**
+     * Creates a validated trade reference.
+     *
+     * <p>The supplied value must match the format
+     * {@code AAA-YYYYMMDD-NNNN}. A {@link NullPointerException} is thrown
+     * if the value is {@code null}, and an
+     * {@link IllegalArgumentException} is thrown if the value does not
+     * conform to the required format.</p>
+     *
+     * @param value the trade reference string
+     */
     public TradeRef {
         Objects.requireNonNull(value, "tradeRef value");
         if (!PATTERN.matcher(value).matches()) {
@@ -29,6 +40,11 @@ public record TradeRef(String value) {
         }
     }
 
+    /**
+     * Create a TradeRef from a string value.
+     * @param value the trade reference string
+     * @return validated TradeRef
+     */
     public static TradeRef of(String value) {
         return new TradeRef(value);
     }

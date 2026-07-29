@@ -15,7 +15,7 @@ import java.util.Optional;
  * ============================================================================
  * TICKET-ADV055 — Custom JPQL filter query
  * TICKET-ADV056 — Specification-based dynamic queries (JpaSpecificationExecutor)
- * TICKET-ADV057 — Pageable / Page<T> for paginated list endpoints
+ * TICKET-ADV057 — Pageable / {@code Page<T>} for paginated list endpoints
  * ============================================================================
  */
 public interface TradeRepository

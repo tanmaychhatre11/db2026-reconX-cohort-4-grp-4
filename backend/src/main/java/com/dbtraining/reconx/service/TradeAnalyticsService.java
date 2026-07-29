@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * ============================================================================
  * TICKET-ADV034 — Trade analytics with Collectors (groupingBy + summarizing)
  * TICKET-ADV035 — VWAP calculator using Streams + custom collector
- * TICKET-ADV036 — P&L per instrument: stream reduction
+ * TICKET-ADV036 — P&amp;L per instrument: stream reduction
  * ============================================================================
  */
 @Service
@@ -41,7 +41,7 @@ public class TradeAnalyticsService {
         throw new UnsupportedOperationException("TICKET-ADV035");
     }
 
-    /** TICKET-ADV036 — P&L per instrument symbol (sign by Side). */
+    /** TICKET-ADV036 — {@code P&amp;L} per instrument symbol (sign by Side). */
     public Map<String, BigDecimal> pnlByInstrument(List<EquityTrade> equityTrades) {
         // TODO(TICKET-ADV036): groupingBy(EquityTrade::instrumentSymbol,
         //   mapping(this::pnl, reducing(BigDecimal.ZERO, BigDecimal::add))).

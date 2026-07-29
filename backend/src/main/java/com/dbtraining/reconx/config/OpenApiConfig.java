@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
  * ============================================================================
  *
  *  TODO(TICKET-ADV058):
+ *    <pre>
  *    @Bean
  *    public OpenAPI reconxOpenAPI() {
  *        return new OpenAPI()
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
  *                    .bearerFormat("JWT")))
  *            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
  *    }
+ *    </pre>
  *
  *  HINT: Without this bean Springdoc still produces a default OpenAPI doc —
  *        you'll see Swagger UI work, but with generic metadata and no

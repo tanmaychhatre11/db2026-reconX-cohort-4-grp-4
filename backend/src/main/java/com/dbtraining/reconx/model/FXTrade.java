@@ -41,6 +41,11 @@ public final class FXTrade implements TradeType {
         this.counterpartyId = b.counterpartyId;
     }
 
+    /**
+     * Creates a new builder.
+     *
+     * @return a new Builder instance
+     */
     public static Builder builder() { return new Builder(); }
 
     @Override public TradeRef tradeRef()     { return tradeRef; }
@@ -53,11 +58,34 @@ public final class FXTrade implements TradeType {
         return new Money(notionalCcy1.multiply(fxRate), ccy2);
     }
 
+    /**
+     * @return the base currency in the FX pair
+     */
     public Currency ccy1()           { return ccy1; }
+
+    /**
+     * @return the quote currency in the FX pair
+     */
     public Currency ccy2()           { return ccy2; }
+
+    /**
+     * @return the notional amount in the base currency
+     */
     public BigDecimal notionalCcy1() { return notionalCcy1; }
+
+    /**
+     * @return the FX rate from ccy1 to ccy2
+     */
     public BigDecimal fxRate()       { return fxRate; }
+
+    /**
+     * @return the trade side
+     */
     public Side side()               { return side; }
+
+    /**
+     * @return the counterparty identifier
+     */
     public long counterpartyId()     { return counterpartyId; }
 
     @Override public boolean equals(Object o) {
@@ -73,6 +101,9 @@ public final class FXTrade implements TradeType {
                         notionalCcy1, ccy1.getCurrencyCode(), fxRate, side);
     }
 
+    /**
+     * Builder for creating immutable BondTrade instances.
+     */
     public static final class Builder {
         private TradeRef tradeRef;
         private Currency ccy1, ccy2;
@@ -81,15 +112,68 @@ public final class FXTrade implements TradeType {
         private LocalDate tradeDate;
         private long counterpartyId;
 
+        /**
+         * Set the trade reference.
+         * @param v trade reference
+         * @return this builder
+         */
         public Builder tradeRef(TradeRef v)        { this.tradeRef = v; return this; }
+
+        /**
+         * Set the base currency of the FX trade.
+         * @param code ISO-4217 currency code
+         * @return this builder
+         */
         public Builder ccy1(String code)           { this.ccy1 = Currency.getInstance(code); return this; }
+
+        /**
+         * Set the quote currency of the FX trade.
+         * @param code ISO-4217 currency code
+         * @return this builder
+         */
         public Builder ccy2(String code)           { this.ccy2 = Currency.getInstance(code); return this; }
+
+        /**
+         * Set the notional amount in base currency.
+         * @param v notional amount in ccy1
+         * @return this builder
+         */
         public Builder notionalCcy1(BigDecimal v)  { this.notionalCcy1 = v; return this; }
+
+        /**
+         * Set the FX rate from ccy1 to ccy2.
+         * @param v FX rate
+         * @return this builder
+         */
         public Builder fxRate(BigDecimal v)        { this.fxRate = v; return this; }
+
+        /**
+         * Set the trade side.
+         * @param v BUY or SELL
+         * @return this builder
+         */
         public Builder side(Side v)                { this.side = v; return this; }
+
+        /**
+         * Set the trade date.
+         * @param v trade date
+         * @return this builder
+         */
         public Builder tradeDate(LocalDate v)      { this.tradeDate = v; return this; }
+
+        /**
+         * Set the counterparty identifier.
+         * @param v counterparty id
+         * @return this builder
+         */
         public Builder counterpartyId(long v)      { this.counterpartyId = v; return this; }
 
+        /**
+         * Build a validated FXTrade.
+         * @return a new FXTrade
+         * @throws NullPointerException if a required field is missing
+         * @throws IllegalStateException if any invariant is violated
+         */
         public FXTrade build() {
             Objects.requireNonNull(tradeRef, "tradeRef");
             Objects.requireNonNull(ccy1, "ccy1");

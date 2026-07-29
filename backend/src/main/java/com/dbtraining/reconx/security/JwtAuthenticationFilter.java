@@ -13,7 +13,7 @@ import java.io.IOException;
  * ============================================================================
  * TICKET-ADV073 — JwtAuthenticationFilter
  *
- * WHAT:    Reads `Authorization: Bearer <token>`, parses it via
+ * WHAT:    Reads {@code Authorization: Bearer <token>}, parses it via
  *          {@link JwtTokenProvider}, and sets the SecurityContext for the
  *          current request.
  * HOW:     Extends OncePerRequestFilter so it runs exactly once per request.

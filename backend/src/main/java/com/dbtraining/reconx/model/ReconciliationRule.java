@@ -17,11 +17,32 @@ import java.math.BigDecimal;
  * ============================================================================
  */
 public enum ReconciliationRule {
-
+    /**
+     * Requires an exact match for both price and quantity.
+     */
     EXACT(BigDecimal.ZERO, BigDecimal.ZERO),
+
+    /**
+     * Allows a price difference of up to 1% while requiring an exact quantity match.
+     */
     PRICE_TOLERANCE_1PCT(new BigDecimal("0.01"), BigDecimal.ZERO),
+
+    /**
+     * Allows a price difference of up to 50 basis points (0.5%) while requiring
+     * an exact quantity match.
+     */
     PRICE_TOLERANCE_50BPS(new BigDecimal("0.005"), BigDecimal.ZERO),
+
+    /**
+     * Requires an exact price match while allowing a quantity difference
+     * of up to 5 units.
+     */
     QTY_TOLERANCE_5UNITS(BigDecimal.ZERO, new BigDecimal("5")),
+
+    /**
+     * Allows both a price difference of up to 5% and a quantity difference
+     * of up to 10 units.
+     */
     LOOSE(new BigDecimal("0.05"), new BigDecimal("10"));
 
     private final BigDecimal priceTolerancePct;
@@ -32,13 +53,24 @@ public enum ReconciliationRule {
         this.qtyToleranceAbs   = qtyToleranceAbs;
     }
 
+    /**
+     * @return the allowed price tolerance as a decimal fraction
+     */
     public BigDecimal priceTolerancePct() { return priceTolerancePct; }
+
+    /**
+     * @return the allowed absolute quantity tolerance
+     */
     public BigDecimal qtyToleranceAbs()   { return qtyToleranceAbs; }
 
     /**
      * Decide whether two prices/quantities are within this rule's tolerance.
+     * @param internalPrice the internal price to compare
+     * @param internalQty the internal quantity to compare
+     * @param externalPrice the external price to compare against
+     * @param externalQty the external quantity to compare against
      * @return true if BOTH the price diff (as %) AND the qty diff (as abs)
-     *         are within tolerance.
+     *         are within tolerance
      */
     public boolean matches(BigDecimal internalPrice, BigDecimal internalQty,
                        BigDecimal externalPrice, BigDecimal externalQty) {

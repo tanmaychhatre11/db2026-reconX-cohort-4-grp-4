@@ -81,6 +81,31 @@ class ReconciliationEngineTest {
         assertThat(results).isEmpty();
     }
 
+        @Test
+        void testReconcile_allMismatched_returnsAllBreaks() {
+                List<ReconResult> results = engine.reconcile(
+                        List.of(
+                                equity("EQU-20260603-0001", "100.00", "10"),
+                                equity("EQU-20260603-0002", "200.00", "20"),
+                                equity("EQU-20260603-0003", "300.00", "30")
+                        ),
+                        List.of(
+                                equity("EQU-20260603-0001", "999.00", "99"),
+                                equity("EQU-20260603-0002", "999.00", "99"),
+                                equity("EQU-20260603-0003", "999.00", "99")
+                        ),
+                        ReconciliationRule.EXACT
+                );
+
+                assertThat(results).hasSize(3);
+                assertThat(results).allMatch(r -> r.status() == ReconResult.Status.BREAK);
+                
+                ReconSummary summary = results.stream().collect(new ReconSummaryCollector());
+                assertThat(summary.total()).isEqualTo(3);
+                assertThat(summary.matched()).isEqualTo(0);
+                assertThat(summary.broken()).isEqualTo(3);
+        }
+
     private EquityTrade equity(String ref, String price, String qty) {
         return EquityTrade.builder()
                 .tradeRef(TradeRef.of(ref))

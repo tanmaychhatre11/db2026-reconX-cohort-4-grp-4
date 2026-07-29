@@ -14,8 +14,8 @@ import org.springframework.security.web.SecurityFilterChain;
  * WHAT:    Spring Security filter chain. Production target: stateless JWT
  *          auth + method-level RBAC across ADMIN / TRADER / VIEWER /
  *          RECON_ANALYST roles.
- * HOW:     One SecurityFilterChain @Bean + PasswordEncoder @Bean +
- *          @EnableMethodSecurity. The JwtAuthenticationFilter is registered
+ * HOW:     One SecurityFilterChain {@code @Bean} + PasswordEncoder {@code @Bean} +
+ *          {@code @EnableMethodSecurity}. The JwtAuthenticationFilter is registered
  *          before UsernamePasswordAuthenticationFilter.
  * WHY:     Day 6 needs role-based protection on every endpoint, and the
  *          frontend uses bearer tokens issued at /auth/login.
@@ -27,6 +27,7 @@ import org.springframework.security.web.SecurityFilterChain;
  *  replace this with proper JWT + role-based auth.
  *
  *  TODO(TICKET-ADV073 + ADV074):
+ *    <pre>
  *    @Bean public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
  *
  *    @Bean
@@ -51,8 +52,9 @@ import org.springframework.security.web.SecurityFilterChain;
  *          .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
  *        return http.build();
  *    }
+ *    </pre>
  *
- *  HINT: Also add @EnableMethodSecurity on the class so @PreAuthorize on
+ *  HINT: Also add {@literal @EnableMethodSecurity} on the class so {@literal @PreAuthorize} on
  *        service methods is honoured.
  * ============================================================================
  */

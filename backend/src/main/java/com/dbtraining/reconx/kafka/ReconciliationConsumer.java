@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  * TICKET-ADV131 — ReconciliationConsumer
  *
  * WHAT:    Listens for `trade-events` and schedules a reconciliation job.
- * HOW:     @KafkaListener on `trade-events`, groupId `recon-service`. In the
+ * HOW:     {@literal @KafkaListener} on `trade-events`, groupId `recon-service`. In the
  *          full implementation this would insert a row into recon_jobs and
  *          trigger the engine; the trainer reference logs the trigger so
  *          students can trace the message flow end-to-end.

@@ -22,7 +22,12 @@ import java.util.Objects;
  * ============================================================================
  */
 public record Money(BigDecimal amount, Currency currency) {
-
+    /**
+     * Creates a validated monetary value.
+     *
+     * @param amount the monetary amount
+     * @param currency the currency associated with the amount
+     */
     public Money {
         Objects.requireNonNull(amount, "amount");
         Objects.requireNonNull(currency, "currency");
@@ -31,23 +36,48 @@ public record Money(BigDecimal amount, Currency currency) {
         }
     }
 
+    /**
+     * Create Money from strings.
+     * @param amount decimal amount string
+     * @param currencyCode ISO-4217 currency code
+     * @return a new Money instance
+     */
     public static Money of(String amount, String currencyCode) {
         return new Money(new BigDecimal(amount), Currency.getInstance(currencyCode));
     }
 
+    /**
+     * Create Money from a BigDecimal amount.
+     * @param amount monetary amount
+     * @param currencyCode ISO-4217 currency code
+     * @return a new Money instance
+     */
     public static Money of(BigDecimal amount, String currencyCode) {
         return new Money(amount, Currency.getInstance(currencyCode));
     }
 
-    /** Add another Money of the same currency. Throws on currency mismatch. */
+    /**
+     * Add another Money of the same currency.
+     * @param other the amount to add
+     * @return a new Money instance representing the sum
+     * @throws IllegalArgumentException if currencies differ
+     */
     public Money plus(Money other) {
-        // TODO(TICKET-ADV024): validate same currency, then return a new Money
-        //                     whose amount = this.amount + other.amount.
-        throw new UnsupportedOperationException("TICKET-ADV024");
+        Objects.requireNonNull(other, "other");
+        if (!currency.equals(other.currency)) {
+            throw new IllegalArgumentException(
+                    "Cannot add %s to %s: currency mismatch".formatted(other.currency, currency));
+        }
+        return new Money(amount.add(other.amount), currency);
     }
 
+    /**
+     * Multiply the monetary amount by a factor.
+     * @param multiplier multiplication factor
+     * @return a new Money instance with the scaled amount
+     */
     public Money times(BigDecimal multiplier) {
-        // TODO(TICKET-ADV024): return a new Money whose amount = this.amount * multiplier.
-        throw new UnsupportedOperationException("TICKET-ADV024");
+        Objects.requireNonNull(multiplier, "multiplier");
+        return new Money(amount.multiply(multiplier), currency);
     }
 }

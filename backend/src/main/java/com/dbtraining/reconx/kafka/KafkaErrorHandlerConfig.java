@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Configuration;
  * ============================================================================
  *
  *  TODO(TICKET-ADV134 + ADV135):
+ *    <pre>
  *    @Bean
  *    public DefaultErrorHandler errorHandler(KafkaTemplate<Object,Object> template) {
  *        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
@@ -33,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
  *        backoff.setMaxAttempts(3);
  *        return new DefaultErrorHandler(recoverer, backoff);
  *    }
+ *    </pre>
  *
  *  GOTCHA: trade-events-dlq must already exist (TICKET-ADV128). The
  *          recoverer does NOT auto-create the topic.

@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Profile;
  * ============================================================================
  *
  *  TODO(TICKET-ADV128 + ADV134):
+ *    <pre>
  *    @Bean public NewTopic tradeEvents() {
  *        return TopicBuilder.name("trade-events").partitions(3).replicas(1).build();
  *    }
@@ -30,6 +31,7 @@ import org.springframework.context.annotation.Profile;
  *    @Bean public NewTopic tradeEventsDlq() {
  *        return TopicBuilder.name("trade-events-dlq").partitions(3).replicas(1).build();
  *    }
+ *    </pre>
  *
  *  HINT: Class is @Profile("!dev & !test") so it only runs in real
  *        environments — in dev / test the embedded Kafka or compose stack

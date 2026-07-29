@@ -9,8 +9,8 @@ import org.mapstruct.Mapping;
  * TICKET-ADV054 — MapStruct mapper: Trade entity <-> DTO
  *
  * WHAT:    Generates the entity↔DTO conversion at compile time.
- * HOW:     componentModel="spring" → MapStruct emits a @Component bean named
- *          tradeMapper that you can @Autowire.
+ * HOW:     componentModel="spring" → MapStruct emits a {@code @Component} bean named
+ *          tradeMapper that you can {@code @Autowire}.
  * WHY:     Hand-written mappers drift. MapStruct fails the build if a new
  *          field is added to one side and forgotten on the other.
  * ============================================================================

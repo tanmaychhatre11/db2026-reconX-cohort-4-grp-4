@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  *
  * WHAT:    Persists every TradeEvent flowing through `trade-events` into the
  *          audit_log table.
- * HOW:     @KafkaListener on `trade-events`, groupId `audit-service`. Maps
+ * HOW:     {@literal @KafkaListener} on `trade-events`, groupId `audit-service`. Maps
  *          the TradeEvent DTO -> AuditLogEntry entity -> repo.save(...).
  * WHY:     Together with ADV137 this powers event-sourced replay — every
  *          domain change is captured immutably.
@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
  * ============================================================================
  *
  *  TODO(TICKET-ADV132):
+ *    <pre>
  *    @KafkaListener(topics = "trade-events", groupId = "audit-service")
  *    public void onTradeEvent(TradeEvent e) {
  *        repo.save(new AuditLogEntry(
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Component;
  *            e.after()));
  *        log.debug("Audit row persisted for eventId={}", e.eventId());
  *    }
+ *    </pre>
  *
  *  HINT: The consumer is on a DIFFERENT groupId from ReconciliationConsumer
  *        so Kafka delivers each message to both groups independently.

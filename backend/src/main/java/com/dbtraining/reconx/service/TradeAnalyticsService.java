@@ -1,12 +1,15 @@
 package com.dbtraining.reconx.service;
 
+import com.dbtraining.reconx.model.BondTrade;
+import com.dbtraining.reconx.model.DerivativeTrade;
 import com.dbtraining.reconx.model.EquityTrade;
 import com.dbtraining.reconx.model.Side;
+import com.dbtraining.reconx.model.FXTrade;
 import com.dbtraining.reconx.model.TradeType;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,13 +18,15 @@ import java.util.stream.Collectors;
  * ============================================================================
  * TICKET-ADV034 — Trade analytics with Collectors (groupingBy + summarizing)
  * TICKET-ADV035 — VWAP calculator using Streams + custom collector
- * TICKET-ADV036 — P&amp;L per instrument: stream reduction
+ * TICKET-ADV036 — P&L per instrument: stream reduction
  * ============================================================================
  */
 @Service
 public class TradeAnalyticsService {
 
-    /** TICKET-ADV034 — count + sum of notional per counterparty. */
+    /**
+     * TICKET-ADV034 — count + sum of notional per counterparty.
+     */
     public Map<Long, NotionalSummary> notionalByCounterparty(List<? extends TradeType> trades) {
         if (trades == null || trades.isEmpty()) {
             return Map.of();
@@ -41,8 +46,7 @@ public class TradeAnalyticsService {
     }
 
     /**
-     * TICKET-ADV035 — VWAP = SUM(price * qty) / SUM(qty). Equity-only — only
-     * EquityTrade has a meaningful price-volume pair.
+     * TICKET-ADV035 — VWAP = SUM(price * qty) / SUM(qty).
      */
     public Map<String, BigDecimal> vwapByInstrument(List<EquityTrade> equityTrades) {
         if (equityTrades == null || equityTrades.isEmpty()) {
@@ -66,7 +70,9 @@ public class TradeAnalyticsService {
                         })));
     }
 
-    /** TICKET-ADV036 — {@code P&amp;L} per instrument symbol (sign by Side). */
+    /**
+     * TICKET-ADV036 — P&L per instrument.
+     */
     public Map<String, BigDecimal> pnlByInstrument(List<EquityTrade> equityTrades) {
         if (equityTrades == null || equityTrades.isEmpty()) {
             return Map.of();
@@ -84,20 +90,26 @@ public class TradeAnalyticsService {
     }
 
     private long counterpartyIdOf(TradeType t) {
+
         if (t instanceof EquityTrade e) {
             return e.counterpartyId();
         }
-        if (t instanceof com.dbtraining.reconx.model.FXTrade fx) {
+
+        if (t instanceof FXTrade fx) {
             return fx.counterpartyId();
         }
-        if (t instanceof com.dbtraining.reconx.model.BondTrade b) {
+
+        if (t instanceof BondTrade b) {
             return b.counterpartyId();
         }
-        if (t instanceof com.dbtraining.reconx.model.DerivativeTrade d) {
+
+        if (t instanceof DerivativeTrade d) {
             return d.counterpartyId();
         }
-        throw new IllegalStateException("Unsupported trade type: " + t.getClass().getName());
+
+        throw new IllegalArgumentException("Unknown TradeType: " + t.getClass().getName());
     }
 
-    public record NotionalSummary(long count, BigDecimal total) {}
+    public record NotionalSummary(long count, BigDecimal total) {
+    }
 }

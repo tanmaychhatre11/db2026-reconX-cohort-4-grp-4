@@ -8,6 +8,7 @@ import com.dbtraining.reconx.model.FXTrade;
 import com.dbtraining.reconx.model.TradeType;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;

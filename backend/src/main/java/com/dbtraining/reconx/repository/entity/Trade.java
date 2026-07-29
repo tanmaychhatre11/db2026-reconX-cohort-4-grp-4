@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Objects;
 
 /**
  * ============================================================================
@@ -30,7 +31,10 @@ import java.time.LocalDate;
  * ============================================================================
  */
 @Entity
-@Table(name = "trades")
+@Table(name = "trades", indexes = {
+    @Index(name = "idx_trades_trade_date", columnList = "trade_date"),
+    @Index(name = "idx_trades_status",     columnList = "status")
+})
 @EntityListeners(AuditingEntityListener.class)
 // @org.hibernate.envers.Audited                  // re-enable when envers tables are migrated
 @SQLRestriction("deleted_at IS NULL")
@@ -108,4 +112,13 @@ public class Trade {
     public void setPrice(BigDecimal v)        { this.price = v; }
     public void setTradeDate(LocalDate v)     { this.tradeDate = v; }
     public void setStatus(String v)           { this.status = v; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Trade other)) return false;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override public int hashCode() { return Objects.hash(id); }
 }

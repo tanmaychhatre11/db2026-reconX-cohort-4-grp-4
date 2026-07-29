@@ -82,25 +82,21 @@ public class ReconciliationEngine {
     }
 
     private BigDecimal[] priceQty(TradeType t) {
-        if (t instanceof com.dbtraining.reconx.model.EquityTrade e) {
-            return new BigDecimal[]{e.price(), e.quantity()};
-        }
-        if (t instanceof com.dbtraining.reconx.model.FXTrade fx) {
-            return new BigDecimal[]{fx.fxRate(), fx.notionalCcy1()};
-        }
-        if (t instanceof com.dbtraining.reconx.model.BondTrade b) {
-            return new BigDecimal[]{b.couponRate(), b.faceValue()};
-        }
-        if (t instanceof com.dbtraining.reconx.model.DerivativeTrade d) {
-            return new BigDecimal[]{d.strike(), d.quantity()};
-        }
-        throw new IllegalStateException("Unsupported trade type: " + t.getClass().getName());
+    if (t instanceof com.dbtraining.reconx.model.EquityTrade e) {
+        return new BigDecimal[]{e.price(), e.quantity()};
     }
-
+    if (t instanceof com.dbtraining.reconx.model.FXTrade fx) {
+        return new BigDecimal[]{fx.fxRate(), fx.notionalCcy1()};
+    }
+    if (t instanceof com.dbtraining.reconx.model.BondTrade b) {
+        return new BigDecimal[]{b.couponRate(), b.faceValue()};
+    }
     if (t instanceof com.dbtraining.reconx.model.DerivativeTrade d) {
         return new BigDecimal[]{d.strike(), d.quantity()};
     }
 
-    throw new IllegalArgumentException("Unknown trade type: " + t.getClass().getName());
+    throw new IllegalStateException(
+            "Unsupported trade type: " + t.getClass().getName()
+    );
 }
 }

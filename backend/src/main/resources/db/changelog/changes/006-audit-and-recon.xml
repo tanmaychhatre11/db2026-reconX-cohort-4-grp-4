@@ -49,12 +49,16 @@
                 <constraints primaryKey="true"/>
             </column>
             <column name="trade_id" type="BIGINT"><constraints nullable="false"/></column>
+            <column name="job_id" type="VARCHAR(36)"><constraints nullable="false"/></column>
             <column name="discrepancy_type" type="VARCHAR(30)"><constraints nullable="false"/></column>
             <column name="status" type="VARCHAR(20)" defaultValue="OPEN"><constraints nullable="false"/></column>
             <column name="detected_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
             <column name="resolved_at" type="TIMESTAMP"/>
             <column name="resolution_note" type="VARCHAR(500)"/>
         </createTable>
+        <createIndex tableName="recon_breaks" indexName="idx_recon_breaks_job">
+            <column name="job_id"/>
+        </createIndex>
         <!-- FK to trades(id) removed: partitioned tables require all partition columns
              (id, trade_date) in unique constraints; a FK on id alone is not possible.
              Referential integrity is maintained at the application level. -->

@@ -18,6 +18,9 @@ public class ReconBreak {
     @Column(name = "trade_id", nullable = false)
     private Long tradeId;
 
+    @Column(name = "job_id", nullable = false, length = 36)
+    private String jobId;
+
     @Column(name = "discrepancy_type", nullable = false, length = 30)
     private String discrepancyType;
 
@@ -42,9 +45,11 @@ public class ReconBreak {
     public Instant getDetectedAt()     { return detectedAt; }
     public Instant getResolvedAt()     { return resolvedAt; }
     public String getResolutionNote()  { return resolutionNote; }
+    public String getJobId()           { return jobId; }
 
     public void setTradeId(Long v)              { this.tradeId = v; }
     public void setDiscrepancyType(String v)    { this.discrepancyType = v; }
+    public void setJobId(String v)              { this.jobId = v; }
 
     public void resolve(String note) {
         this.status = "RESOLVED";

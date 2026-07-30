@@ -55,7 +55,7 @@ erDiagram
     RECON_BREAKS {
         bigint id PK
         bigint trade_id FK
-        bigint recon_job_id FK
+        bigint job_id FK
         varchar discrepancy_type
         varchar status
         timestamp detected_at

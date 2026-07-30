@@ -1,6 +1,7 @@
 package com.dbtraining.reconx.controller;
 
 import com.dbtraining.reconx.dto.ReconRunRequest;
+import com.dbtraining.reconx.exception.ReconBreakNotFoundException;
 import com.dbtraining.reconx.exception.TradeNotFoundException;
 import com.dbtraining.reconx.repository.ReconBreakRepository;
 import com.dbtraining.reconx.repository.ReconJobRepository;
@@ -19,6 +20,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import com.dbtraining.reconx.dto.ResolveRequest;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * TICKET-ADV068 — POST /api/v1/recon/run — returns 202 + jobId
@@ -71,11 +75,18 @@ public class ReconController {
 
     @PutMapping("/results/{id}/resolve")
     @Operation(summary = "Mark a recon break as RESOLVED with a note")
-    public ResponseEntity<ReconBreak> resolve(@PathVariable Long id,
-                                              @RequestBody Map<String, String> body) {
-        // TODO(TICKET-ADV070): load the ReconBreak, call rb.resolve(note), save,
-        //   and return 200 with the updated entity. Throw TradeNotFoundException
-        //   when the id is unknown.
-        throw new UnsupportedOperationException("TICKET-ADV070");
+    @Transactional
+    public ResponseEntity<ReconBreak> resolve(
+        @PathVariable Long id,
+        @Valid @RequestBody ResolveRequest request) {
+
+        ReconBreak rb = reconBreakRepository.findById(id)
+            .orElseThrow(() -> new ReconBreakNotFoundException(id));
+
+        rb.resolve(request.getNote());
+
+        reconBreakRepository.save(rb);
+
+        return ResponseEntity.ok(rb);
     }
 }

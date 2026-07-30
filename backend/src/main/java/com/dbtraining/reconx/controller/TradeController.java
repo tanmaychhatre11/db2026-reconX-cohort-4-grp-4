@@ -22,6 +22,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import com.dbtraining.reconx.dto.TradeStatusRequest;
 
 /**
  * ============================================================================
@@ -88,12 +89,18 @@ public TradeResponse update(@PathVariable Long id,
 
     @PatchMapping("/{id}/status")
     @Operation(summary = "Update only the status field")
-    public TradeResponse updateStatus(@PathVariable Long id,
-                                      @RequestBody Map<String, String> body,
-                                      @AuthenticationPrincipal Object principal) {
-        // TODO(TICKET-ADV066): read body.get("status") and call
-        //   service.updateStatus(id, status, actor). Return mapper.toResponse(saved).
-        throw new UnsupportedOperationException("TICKET-ADV066");
+    public TradeResponse updateStatus(
+        @PathVariable Long id,
+        @Valid @RequestBody TradeStatusRequest request,
+        @AuthenticationPrincipal Object principal) {
+
+        Trade updated = service.updateStatus(
+            id,
+            request.getStatus(),
+            principal != null ? principal.toString() : "system"
+        );
+
+        return mapper.toResponse(updated);
     }
 
     @DeleteMapping("/{id}")

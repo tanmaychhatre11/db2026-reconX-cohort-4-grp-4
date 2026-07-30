@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.MDC;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -15,6 +17,7 @@ public class MdcFilter implements Filter {
 
     private static final String CORRELATION_HEADER = "X-Correlation-Id";
     private static final String TRADE_HEADER = "X-Trade-Ref";
+    private static final Logger log = LoggerFactory.getLogger(MdcFilter.class);
 
     @Override
     public void doFilter(
@@ -43,7 +46,8 @@ public class MdcFilter implements Filter {
             if (tradeRef != null) {
                 MDC.put("tradeRef", tradeRef);
             }
-
+            log.info("Filter invoked");
+            
             chain.doFilter(request, response);
 
         } finally {

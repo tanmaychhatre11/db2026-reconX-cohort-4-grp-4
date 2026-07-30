@@ -73,15 +73,18 @@ public class TradeController {
                 .created(URI.create("/api/v1/trades/" + saved.getId()))
                 .body(mapper.toResponse(saved));
     }
+@PutMapping("/{id}")
+@Operation(summary = "Full update of a trade")
+public TradeResponse update(@PathVariable Long id,
+                            @Valid @RequestBody TradeRequest req,
+                            @AuthenticationPrincipal Object principal) {
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Full update of a trade")
-    public TradeResponse update(@PathVariable Long id, @Valid @RequestBody TradeRequest req,
-                                @AuthenticationPrincipal Object principal) {
-        // TODO(TICKET-ADV065): delegate to service.update(id, req, actor) and
-        //   map the updated entity through mapper.toResponse.
-        throw new UnsupportedOperationException("TICKET-ADV065");
-    }
+    String actor = String.valueOf(principal);
+
+    Trade updated = service.update(id, req, actor);
+
+    return mapper.toResponse(updated);
+}
 
     @PatchMapping("/{id}/status")
     @Operation(summary = "Update only the status field")

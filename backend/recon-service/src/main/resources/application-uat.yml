@@ -14,7 +14,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
+<<<<<<< HEAD:backend/recon-service/src/main/resources/application-uat.yml
       ddl-auto: update
+=======
+      ddl-auto: validate
+>>>>>>> 67a2a90 (Day 4 Work (#152)):backend/src/main/resources/application-uat.yml
     properties:
       hibernate.jdbc.batch_size: 50
 

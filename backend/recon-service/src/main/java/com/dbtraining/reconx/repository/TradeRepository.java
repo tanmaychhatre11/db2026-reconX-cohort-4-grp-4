@@ -28,6 +28,7 @@ public interface TradeRepository
             "instrument",
             "counterparty"
     })
+<<<<<<< HEAD:backend/recon-service/src/main/java/com/dbtraining/reconx/repository/TradeRepository.java
     Optional<Trade> findById(Long id);
 
 
@@ -36,6 +37,8 @@ public interface TradeRepository
             "instrument",
             "counterparty"
     })
+=======
+>>>>>>> 67a2a90 (Day 4 Work (#152)):backend/src/main/java/com/dbtraining/reconx/repository/TradeRepository.java
     Page<Trade> findAll(Specification<Trade> spec, Pageable pageable);
     
     Optional<Trade> findByTradeRef(String tradeRef);

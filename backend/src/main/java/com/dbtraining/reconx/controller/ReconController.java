@@ -1,6 +1,7 @@
 package com.dbtraining.reconx.controller;
 
 import com.dbtraining.reconx.dto.ReconRunRequest;
+import com.dbtraining.reconx.exception.ReconBreakNotFoundException;
 import com.dbtraining.reconx.exception.TradeNotFoundException;
 import com.dbtraining.reconx.repository.ReconBreakRepository;
 import com.dbtraining.reconx.repository.ReconJobRepository;
@@ -79,12 +80,12 @@ public class ReconController {
         @PathVariable Long id,
         @Valid @RequestBody ResolveRequest request) {
 
-        ReconBreak rb = breaks.findById(id)
-            .orElseThrow(() -> new TradeNotFoundException(String.valueOf(id)));
+        ReconBreak rb = reconBreakRepository.findById(id)
+            .orElseThrow(() -> new ReconBreakNotFoundException(id));
 
         rb.resolve(request.getNote());
 
-        breaks.save(rb);
+        reconBreakRepository.save(rb);
 
         return ResponseEntity.ok(rb);
     }

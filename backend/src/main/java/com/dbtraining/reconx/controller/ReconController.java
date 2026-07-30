@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.dbtraining.reconx.dto.ResolveRequest;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * TICKET-ADV068 — POST /api/v1/recon/run — returns 202 + jobId
  * TICKET-ADV069 — GET  /api/v1/recon/jobs/{jobId}/results
@@ -52,11 +55,18 @@ public class ReconController {
 
     @PutMapping("/results/{id}/resolve")
     @Operation(summary = "Mark a recon break as RESOLVED with a note")
-    public ResponseEntity<ReconBreak> resolve(@PathVariable Long id,
-                                              @RequestBody Map<String, String> body) {
-        // TODO(TICKET-ADV070): load the ReconBreak, call rb.resolve(note), save,
-        //   and return 200 with the updated entity. Throw TradeNotFoundException
-        //   when the id is unknown.
-        throw new UnsupportedOperationException("TICKET-ADV070");
+    @Transactional
+    public ResponseEntity<ReconBreak> resolve(
+        @PathVariable Long id,
+        @Valid @RequestBody ResolveRequest request) {
+
+        ReconBreak rb = breaks.findById(id)
+            .orElseThrow(() -> new TradeNotFoundException(String.valueOf(id)));
+
+        rb.resolve(request.getNote());
+
+        breaks.save(rb);
+
+        return ResponseEntity.ok(rb);
     }
 }

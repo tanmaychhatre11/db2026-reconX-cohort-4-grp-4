@@ -112,10 +112,14 @@ public Trade update(Long id, TradeRequest req, String actor) {
 }
 
     public Trade updateStatus(Long id, String status, String actor) {
-        // TODO(TICKET-ADV066): load, setStatus(status), save, publish TRADE_UPDATED
-        //   with the new status in the "after" slot of the event.
-        throw new UnsupportedOperationException("TICKET-ADV066");
-    }
+
+        Trade trade = tradeRepo.findById(id)
+            .orElseThrow(() -> new TradeNotFoundException(String.valueOf(id)));
+
+        trade.setStatus(status);
+
+        return tradeRepo.save(trade);
+    }  
 
     public void softDelete(Long id, String actor) {
 

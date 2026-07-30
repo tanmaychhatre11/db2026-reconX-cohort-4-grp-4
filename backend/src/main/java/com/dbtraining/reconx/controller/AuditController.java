@@ -11,10 +11,15 @@ import java.util.Collections;
 import java.util.List;
 
 import com.dbtraining.reconx.dto.AuditRevisionResponse;
+import com.dbtraining.reconx.dto.TradeMapper;
+import com.dbtraining.reconx.dto.TradeResponse;
+import com.dbtraining.reconx.exception.TradeNotFoundException;
 import com.dbtraining.reconx.repository.TradeRepository;
 import com.dbtraining.reconx.repository.entity.Trade;
 
 import jakarta.persistence.EntityManager;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.RevisionType;
@@ -31,51 +36,53 @@ import org.hibernate.envers.DefaultRevisionEntity;
 @Tag(name = "audit")
 @SecurityRequirement(name = "bearerAuth")
 public class AuditController {
-
+    private final TradeMapper tradeMapper;
     private final AuditLogRepository auditRepo;
     private final TradeRepository tradeRepo;
     private final EntityManager entityManager;
 
     public AuditController(AuditLogRepository auditRepo,
                        TradeRepository tradeRepo,
-                       EntityManager entityManager) {
+                       EntityManager entityManager,
+                       TradeMapper tradeMapper) {
         this.auditRepo = auditRepo;
         this.tradeRepo = tradeRepo;
         this.entityManager = entityManager;
+        this.tradeMapper = tradeMapper;
     }
 
     @GetMapping("/trades/{tradeRef}")
+    @Transactional(readOnly = true)
     @Operation(summary = "Get audit history for a trade (by tradeRef)")
     public List<AuditRevisionResponse> history(@PathVariable String tradeRef) {
 
-        Trade trade = tradeRepo.findByTradeRef(tradeRef)
-            .orElseThrow(() -> new RuntimeException("Trade not found: " + tradeRef));
+        Trade trade = tradeRepo.findByTradeRef(tradeRef).orElseThrow(() -> new TradeNotFoundException(tradeRef));
 
         AuditReader reader = AuditReaderFactory.get(entityManager);
 
-        List<Number> revisions = reader.getRevisions(Trade.class, trade.getId());
+        List<Object[]> revisions = reader.createQuery()
+                .forRevisionsOfEntity(Trade.class, false, true)
+                .add(AuditEntity.id().eq(trade.getId()))
+                .getResultList();
 
         return revisions.stream()
-            .map(revision -> {
+                .map(result -> {
+                    Trade snapshot = (Trade) result[0];
+                    TradeResponse snapshotResponse = tradeMapper.toResponse(snapshot);
+                    DefaultRevisionEntity revision =
+                            (DefaultRevisionEntity) result[1];
+                    RevisionType revisionType =
+                            (RevisionType) result[2];
 
-                Trade snapshot = reader.find(
-                        Trade.class,
-                        trade.getId(),
-                        revision
-                );
-
-                DefaultRevisionEntity revisionEntity =
-        reader.findRevision(DefaultRevisionEntity.class, revision);
-
-return new AuditRevisionResponse(
-        revision.longValue(),
-        Instant.ofEpochMilli(revisionEntity.getTimestamp()),
-        "ADD",
-        "system",
-        snapshot
-);
-            })
-            .toList();
+                    return new AuditRevisionResponse(
+                            (long) revision.getId(),
+                            Instant.ofEpochMilli(revision.getTimestamp()),
+                            revisionType.name(),
+                            "system",
+                            snapshotResponse
+                    );
+                })
+                .toList();
     }
 
     @GetMapping("/trades/{tradeRef}/events")

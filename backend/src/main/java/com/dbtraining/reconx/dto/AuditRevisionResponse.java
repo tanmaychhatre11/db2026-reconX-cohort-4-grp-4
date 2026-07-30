@@ -8,7 +8,7 @@ public class AuditRevisionResponse {
     private Instant revisionTimestamp;
     private String revisionType;
     private String changedBy;
-    private Object snapshot;
+    private TradeResponse snapshot;
 
     public AuditRevisionResponse() {
     }
@@ -17,7 +17,7 @@ public class AuditRevisionResponse {
                                  Instant revisionTimestamp,
                                  String revisionType,
                                  String changedBy,
-                                 Object snapshot) {
+                                 TradeResponse snapshot) {
         this.revisionId = revisionId;
         this.revisionTimestamp = revisionTimestamp;
         this.revisionType = revisionType;
@@ -41,7 +41,7 @@ public class AuditRevisionResponse {
         return changedBy;
     }
 
-    public Object getSnapshot() {
+    public TradeResponse getSnapshot() {
         return snapshot;
     }
 }

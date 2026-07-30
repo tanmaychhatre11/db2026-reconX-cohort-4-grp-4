@@ -245,21 +245,47 @@
 
     </changeSet>
 
+    <changeSet id="008-seed-recon-jobs" author="trainer" context="dev,test,uat">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM recon_jobs</sqlCheck>
+        </preConditions>
+
+        <insert tableName="recon_jobs">
+            <column name="job_id" value="seed-job-001"/>
+            <column name="from_date" valueDate="2026-04-01"/>
+            <column name="to_date" valueDate="2026-07-31"/>
+            <column name="status" value="COMPLETED"/>
+            <column name="trades_processed" valueNumeric="30"/>
+            <column name="breaks_detected" valueNumeric="30"/>
+        </insert>
+
+        <rollback>
+            <sql>DELETE FROM recon_jobs;</sql>
+        </rollback>
+    </changeSet>
+
     <changeSet id="008-seed-recon-breaks" author="trainer" context="dev,test,uat">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">SELECT COUNT(*) FROM recon_breaks</sqlCheck>
         </preConditions>
         <sql>
-            INSERT INTO recon_breaks (trade_id, discrepancy_type, status)
-            SELECT id,
-                (ARRAY['PRICE_MISMATCH','QUANTITY_MISMATCH','DATE_MISMATCH'])[1 + (id % 3)],
+            INSERT INTO recon_breaks (trade_id, job_id, discrepancy_type, status)
+            SELECT
+                id,
+                'seed-job-001',
+                (ARRAY[
+                    'PRICE_MISMATCH',
+                    'QUANTITY_MISMATCH',
+                    'DATE_MISMATCH'
+                ])[1 + (id % 3)],
                 'OPEN'
             FROM trades
             WHERE status IN ('UNMATCHED','DISPUTED')
             LIMIT 30;
         </sql>
+
         <rollback>
-            <sql>DELETE FROM recon_breaks</sql>
+            <sql>DELETE FROM recon_breaks;</sql>
         </rollback>
     </changeSet>
 

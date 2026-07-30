@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 public class TradeStatusRequest {
 
     @Pattern(
-        regexp = "PENDING|MATCHED|BROKEN|CANCELLED",
+        regexp = "PENDING|UNMATCHED|MATCHED|DISPUTED",
         message = "Invalid trade status"
     )
     private String status;

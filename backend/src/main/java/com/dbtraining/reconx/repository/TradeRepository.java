@@ -28,6 +28,14 @@ public interface TradeRepository
             "instrument",
             "counterparty"
     })
+    Optional<Trade> findById(Long id);
+
+
+    @Override
+    @EntityGraph(attributePaths = {
+            "instrument",
+            "counterparty"
+    })
     Page<Trade> findAll(Specification<Trade> spec, Pageable pageable);
     
     Optional<Trade> findByTradeRef(String tradeRef);

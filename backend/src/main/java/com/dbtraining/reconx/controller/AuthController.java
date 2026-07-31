@@ -14,12 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * POST /api/auth/login
+ * POST /api/v1/auth/login
  *
  * Verifies BCrypt password, returns a JWT carrying the user's role.
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/v1/auth")
 @Tag(name = "auth")
 public class AuthController {
 
@@ -32,7 +32,7 @@ public class AuthController {
         this.encoder = encoder;
         this.jwt = jwt;
     }
-
+    
     @PostMapping("/login")
     @Operation(summary = "Exchange email + password for a JWT")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {

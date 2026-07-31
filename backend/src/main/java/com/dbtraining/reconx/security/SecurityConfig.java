@@ -40,7 +40,7 @@ public class SecurityConfig {
                             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/v1/auth/login",
+                        "/auth/login",
                         "/actuator/health/**",
                         "/actuator/info",
                         "/actuator/prometheus",

@@ -46,6 +46,33 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
     },
     {
+      "type": "timeseries",
+      "title": "API P95 latency (TICKET-ADV088)",
+      "datasource": { "type": "prometheus", "uid": "reconx-prometheus" },
+
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, uri))",
+          "legendFormat": "P50 {{uri}}"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, uri))",
+          "legendFormat": "P95 {{uri}}"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, uri))",
+          "legendFormat": "P99 {{uri}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+    },
+    {
       "type": "stat",
       "title": "Open recon breaks (ADV091)",
       "datasource": { "type": "prometheus", "uid": "reconx-prometheus" },
@@ -87,7 +114,12 @@
       "type": "timeseries",
       "title": "Trades created / sec (ADV089)",
       "datasource": { "type": "prometheus", "uid": "reconx-prometheus" },
-      "targets": [{ "expr": "sum(rate(trade_created_total[1m]))" }],
+      "targets": [{ "expr": "sum(rate(trade_creation_total[1m]))" ,
+        "legendFormat": "trades/sec"}],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps"
+          }},
       "gridPos": { "h": 8, "w": 12, "x": 6, "y": 8 }
     },
     {

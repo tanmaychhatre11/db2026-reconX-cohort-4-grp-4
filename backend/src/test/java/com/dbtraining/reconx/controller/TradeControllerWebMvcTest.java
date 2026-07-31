@@ -4,8 +4,10 @@ import com.dbtraining.reconx.dto.TradeMapper;
 import com.dbtraining.reconx.dto.TradeRequest;
 import com.dbtraining.reconx.dto.TradeResponse;
 import com.dbtraining.reconx.repository.entity.Trade;
+import com.dbtraining.reconx.security.JwtAuthenticationFilter;
 import com.dbtraining.reconx.security.JwtTokenProvider;
 import com.dbtraining.reconx.service.TradeService;
+import com.dbtraining.reconx.security.SecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 // import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 // import org.springframework.context.annotation.Bean;
 // import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -36,6 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ActiveProfiles("uat")
 @WebMvcTest(TradeController.class)
+@Import(SecurityConfig.class)
 class TradeControllerWebMvcTest {
 
         @Autowired
@@ -52,6 +56,9 @@ class TradeControllerWebMvcTest {
 
         @MockBean
         private JwtTokenProvider jwtTokenProvider;
+
+        // @MockBean
+        // private JwtAuthenticationFilter jwtAuthenticationFilter;
 
         private TradeRequest validRequest() {
                 return new TradeRequest(
@@ -104,10 +111,21 @@ class TradeControllerWebMvcTest {
 
         @Test
         void testCreateTrade_unauthenticated_returns401() throws Exception {
-        mockMvc.perform(post("/api/v1/trades")
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validRequest())))
+        mockMvc.perform(post("/v1/trades")
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validRequest())))
                 .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @WithMockUser(roles = "VIEWER")
+        void testCreateTrade_viewerRole_returns403() throws Exception {
+
+        mockMvc.perform(post("/v1/trades")
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validRequest())))
+                .andExpect(status().isForbidden());
         }
 }

@@ -2495,3 +2495,8 @@ curl -i http://localhost:8080/api/v1/trades \
 - [ ] No JWT secret is committed to git — all references go through `${APP_JWT_SECRET:dev-default}`.
 - [ ] Soft-deleted trades disappear from list endpoints but remain visible in the database for audit.
 - [ ] You can draw the request flow from `curl POST /api/v1/trades` with a Bearer token all the way to the database, naming every Spring component the request passes through.
+## API Versioning
+
+All endpoints are exposed under `/api/v1`.
+
+Breaking API changes should be introduced under a new version (for example `/api/v2`). Older API versions remain available until their published Sunset date. Clients should migrate to the newer version before the sunset date.

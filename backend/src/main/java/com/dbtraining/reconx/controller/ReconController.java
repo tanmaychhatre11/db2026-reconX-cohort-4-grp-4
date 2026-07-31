@@ -2,11 +2,13 @@ package com.dbtraining.reconx.controller;
 
 import com.dbtraining.reconx.dto.ReconRunRequest;
 import com.dbtraining.reconx.exception.ReconBreakNotFoundException;
-import com.dbtraining.reconx.exception.TradeNotFoundException;
+import com.dbtraining.reconx.model.ReconciliationRule;
+// import com.dbtraining.reconx.exception.TradeNotFoundException;
 import com.dbtraining.reconx.repository.ReconBreakRepository;
 import com.dbtraining.reconx.repository.ReconJobRepository;
 import com.dbtraining.reconx.repository.entity.ReconBreak;
 import com.dbtraining.reconx.repository.entity.ReconJob;
+import com.dbtraining.reconx.service.ReconciliationService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -17,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+// import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,8 +27,8 @@ import java.util.UUID;
 import com.dbtraining.reconx.dto.ResolveRequest;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.dbtraining.reconx.dto.ResolveRequest;
-import org.springframework.transaction.annotation.Transactional;
+// import com.dbtraining.reconx.dto.ResolveRequest;
+// import org.springframework.transaction.annotation.Transactional;
 
 /**
  * TICKET-ADV068 — POST /api/v1/recon/run — returns 202 + jobId
@@ -40,11 +43,14 @@ public class ReconController {
 
     private final ReconBreakRepository reconBreakRepository;
     private final ReconJobRepository jobs;
+    private final ReconciliationService reconciliationService;
 
     public ReconController(ReconBreakRepository breaks,
-                        ReconJobRepository jobs) {
+                        ReconJobRepository jobs,
+                        ReconciliationService reconciliationService) {
         this.reconBreakRepository = breaks;
         this.jobs = jobs;
+        this.reconciliationService = reconciliationService;
     }
 
     @PostMapping("/run")
@@ -61,6 +67,8 @@ public class ReconController {
         job.setStatus("QUEUED");
 
         jobs.save(job);
+
+        reconciliationService.runRecon(Collections.emptyList(), Collections.emptyList(), ReconciliationRule.EXACT);
 
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)

@@ -16,26 +16,26 @@ import static org.mockito.Mockito.verify;
 
 class ReconciliationServiceTest {
 
-    @Test
-    void testRunRecon_savesResultWithMatchedStatus() {
+        @Test
+        void testRunRecon_savesResultWithMatchedStatus() {
 
-        // ReconResultRepository repo = mock(ReconResultRepository.class);
+        ReconResultRepository repo = mock(ReconResultRepository.class);
 
         ReconciliationEngine engine = new ReconciliationEngine();
 
         ReconciliationService service =
-                new ReconciliationService(engine); //repo
+                new ReconciliationService(engine, repo);
 
         EquityTrade internal = equity(
-            "EQU-20260603-0001",
-            "100.00",
-            "10"
+                "EQU-20260603-0001",
+                "100.00",
+                "10"
         );
 
         EquityTrade external = equity(
-            "EQU-20260603-0001",
-            "100.00",
-            "10"
+                "EQU-20260603-0001",
+                "100.00",
+                "10"
         );
 
         service.runRecon(
@@ -47,7 +47,7 @@ class ReconciliationServiceTest {
         ArgumentCaptor<ReconResult> captor =
                 ArgumentCaptor.forClass(ReconResult.class);
 
-        // verify(repo).save(captor.capture());
+        verify(repo).save(captor.capture());
 
         ReconResult saved = captor.getValue();
 
@@ -56,7 +56,7 @@ class ReconciliationServiceTest {
 
         assertThat(saved.status())
                 .isEqualTo(ReconResult.Status.MATCHED);
-    }
+        }
 
 
     private EquityTrade equity(String ref,

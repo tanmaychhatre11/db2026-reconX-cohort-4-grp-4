@@ -12,22 +12,26 @@ import java.util.List;
 public class ReconciliationService {
 
     private final ReconciliationEngine engine;
-    // private final ReconResultRepository repo;
+    private final ReconResultRepository repo;
 
-    public ReconciliationService(ReconciliationEngine engine) {
-        // ReconResultRepository repo
+    public ReconciliationService(
+            ReconciliationEngine engine,
+            ReconResultRepository repo
+    ) {
         this.engine = engine;
-        // this.repo = repo;
+        this.repo = repo;
     }
 
-    public List<ReconResult> runRecon(List<TradeType> internal,
-                                      List<TradeType> external,
-                                      ReconciliationRule rule) {
+    public List<ReconResult> runRecon(
+            List<TradeType> internal,
+            List<TradeType> external,
+            ReconciliationRule rule
+    ) {
 
         List<ReconResult> results =
                 engine.reconcile(internal, external, rule);
 
-        // results.forEach(repo::save);
+        results.forEach(repo::save);
 
         return results;
     }

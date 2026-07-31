@@ -33,7 +33,7 @@ public class TradeMetrics {
     private final Counter tradeCreated;
     private final DistributionSummary tradeValue;
 
-    public TradeMetrics(MeterRegistry registry, ReconBreakRepository breakRepo) {
+    public TradeMetrics(MeterRegistry registry, ReconBreakRepository breakRepo, TradeRepository tradeRepo) {
         this.tradeCreated = Counter.builder("trade_creation_total")
                 .description("Total trades created")
                 .register(registry);
@@ -53,8 +53,7 @@ public class TradeMetrics {
                 "PENDING",
                 "MATCHED",
                 "UNMATCHED",
-                "DISPUTED",
-                "CANCELLED"
+                "DISPUTED"
         };
 
         for (String status : statuses) {

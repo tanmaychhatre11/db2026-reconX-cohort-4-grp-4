@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * ============================================================================
@@ -34,6 +35,9 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint((request, response, authException) ->
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/auth/login",
@@ -54,7 +58,7 @@ public class SecurityConfig {
                 .requestMatchers("/v1/audit/**").hasAnyRole("RECON_ANALYST","ADMIN")
                 .anyRequest().authenticated()
             )
-            .headers(h -> h.frameOptions(f -> f.disable()))   // for /h2 dev console
+            .headers(h -> h.frameOptions(f -> f.disable()))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

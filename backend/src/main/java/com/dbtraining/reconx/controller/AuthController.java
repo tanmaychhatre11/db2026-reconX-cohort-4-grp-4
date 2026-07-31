@@ -1,25 +1,30 @@
 package com.dbtraining.reconx.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.dbtraining.reconx.dto.LoginRequest;
 import com.dbtraining.reconx.dto.LoginResponse;
 import com.dbtraining.reconx.exception.InvalidTradeException;
 import com.dbtraining.reconx.repository.AppUserRepository;
 import com.dbtraining.reconx.repository.entity.AppUser;
 import com.dbtraining.reconx.security.JwtTokenProvider;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
 
 /**
- * POST /api/auth/login
+ * POST /api/v1/auth/login
  *
  * Verifies BCrypt password, returns a JWT carrying the user's role.
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/v1/auth")
 @Tag(name = "auth")
 public class AuthController {
 
@@ -32,10 +37,11 @@ public class AuthController {
         this.encoder = encoder;
         this.jwt = jwt;
     }
-
+    
     @PostMapping("/login")
     @Operation(summary = "Exchange email + password for a JWT")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
+        System.out.println("LOGIN ATTEMPT: " + req.email());
         AppUser u = users.findByEmail(req.email())
                 .orElseThrow(() -> new InvalidTradeException("Invalid credentials"));
         if (!u.getEnabled() || !encoder.matches(req.password(), u.getPasswordHash())) {

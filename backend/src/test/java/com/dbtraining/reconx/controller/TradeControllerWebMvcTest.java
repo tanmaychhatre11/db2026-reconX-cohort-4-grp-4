@@ -88,12 +88,8 @@ class TradeControllerWebMvcTest {
                                 null,
                                 null);
 
-                Mockito.when(tradeService.create(any(TradeRequest.class), anyString()))
-                                .thenReturn(trade);
-
-                Mockito.when(tradeMapper.toResponse(any(Trade.class)))
-                                .thenReturn(response);
-
+                Mockito.when(tradeService.create(any(TradeRequest.class), anyString())).thenReturn(trade);
+                Mockito.when(tradeMapper.toResponse(any(Trade.class))).thenReturn(response);
                 mockMvc.perform(post("/v1/trades")
                                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -104,5 +100,14 @@ class TradeControllerWebMvcTest {
                                 .andExpect(jsonPath("$.id").value(42))
                                 .andExpect(jsonPath("$.tradeRef")
                                                 .value("ABC-20260730-0001"));
+        }
+
+        @Test
+        void testCreateTrade_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(post("/api/v1/trades")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest())))
+                .andExpect(status().isUnauthorized());
         }
 }

@@ -30,6 +30,37 @@
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 8 }
     },
     {
+      "type": "piechart",
+      "title": "Trades by status (ADV092)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "reconx-prometheus"
+      },
+      "targets": [
+        {
+          "expr": "trades_by_status",
+          "legendFormat": "{{status}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table"
+        },
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 12
+      }
+    },
+    {
       "type": "timeseries",
       "title": "Trades created / sec (ADV089)",
       "datasource": { "type": "prometheus", "uid": "reconx-prometheus" },
@@ -53,3 +84,5 @@
   "uid": "reconx-overview",
   "version": 1
 }
+
+

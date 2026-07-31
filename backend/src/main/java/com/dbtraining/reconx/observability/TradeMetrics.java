@@ -6,6 +6,7 @@ import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.stereotype.Component;
+import com.dbtraining.reconx.repository.TradeRepository;
 
 /**
  * ============================================================================
@@ -41,7 +42,7 @@ public class TradeMetrics {
     private final Counter tradeCreated;
     private final DistributionSummary tradeValue;
 
-    public TradeMetrics(MeterRegistry registry, ReconBreakRepository breakRepo) {
+    public TradeMetrics(MeterRegistry registry, ReconBreakRepository breakRepo, TradeRepository tradeRepo) {
         this.tradeCreated = Counter.builder("trade_created_total")
                 .description("Total trades created")
                 .register(registry);
@@ -56,6 +57,23 @@ public class TradeMetrics {
         Gauge.builder("recon_break_count", breakRepo, r -> r.countByStatus("OPEN"))
                 .description("Open recon breaks")
                 .register(registry);
+
+        String[] statuses = {
+                "PENDING",
+                "MATCHED",
+                "UNMATCHED",
+                "DISPUTED",
+                "CANCELLED"
+        };
+
+        for (String status : statuses) {
+            Gauge.builder("trades_by_status",
+                    tradeRepo,
+                    repo -> repo.countByStatus(status))
+                    .description("Trades count by status")
+                    .tag("status", status)
+                    .register(registry);
+        }
     }
 
     public void incrementTradeCreated() {

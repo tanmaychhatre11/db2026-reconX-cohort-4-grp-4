@@ -25,15 +25,6 @@ import org.springframework.stereotype.Component;
  * The TIMER for reconciliation duration lives as @Timed on
  * ReconciliationEngine.reconcile() (TICKET-ADV084) — not in this class.
  * ============================================================================
- *
- *  TODO(TICKET-ADV083 + ADV086):
- *    public void incrementTradeCreated() { tradeCreated.increment(); }
- *    public void recordTradeValue(double value) { tradeValue.record(value); }
- *
- *  HINT: A polled Gauge MUST hold a strong reference to its source object,
- *        otherwise it disappears on GC. Here breakRepo is captured by the
- *        Gauge.builder so the lifetime is tied to the registry.
- * ============================================================================
  */
 @Component
 public class TradeMetrics {
@@ -42,7 +33,7 @@ public class TradeMetrics {
     private final DistributionSummary tradeValue;
 
     public TradeMetrics(MeterRegistry registry, ReconBreakRepository breakRepo) {
-        this.tradeCreated = Counter.builder("trade_created_total")
+        this.tradeCreated = Counter.builder("trade_creation_total")
                 .description("Total trades created")
                 .register(registry);
 
@@ -56,11 +47,19 @@ public class TradeMetrics {
         Gauge.builder("recon_break_count", breakRepo, r -> r.countByStatus("OPEN"))
                 .description("Open recon breaks")
                 .register(registry);
+
+        registry.getMeters().forEach(m -> {
+            System.out.println("--------------------------------");
+            System.out.println("NAME : " + m.getId().getName());
+            System.out.println("TYPE : " + m.getId().getType());
+            System.out.println("CLASS: " + m.getClass().getName());
+            System.out.println("ID   : " + m.getId());
+        });
     }
 
    public void incrementTradeCreated() {
-    tradeCreated.increment();
-}
+        tradeCreated.increment();
+    }
 
     public void recordTradeValue(double value) {
         tradeValue.record(value);

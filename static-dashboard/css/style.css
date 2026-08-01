@@ -41,8 +41,10 @@
 }
 
 [data-theme="dark"] {
-  --color-bg:#1a1a1a; --color-surface:#2a2a2a;
-  --color-text:#f5f5f5; --color-border:#3a3a3a;
+  --color-bg:#1a1a1a; 
+  --color-surface:#2a2a2a;
+  --color-text:#f5f5f5; 
+  --color-border:#3a3a3a;
 }
 
 * { box-sizing:border-box; }

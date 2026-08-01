@@ -33,7 +33,6 @@
   --focus-ring-width:2px;
   --focus-ring-offset:2px;
 
-  /* layout dimensions — tokenised so ADV098/ADV103 also read via var() */
   --layout-header-h:64px;
   --layout-header-h-mobile:56px;
   --layout-footer-h:48px;
@@ -102,7 +101,7 @@ html, body {
 .stat-card h3 { margin:0; opacity:.75; font-size:var(--font-size-sm); }
 .stat-card p { margin-top:var(--space-2); font-size:var(--font-size-lg); font-weight:bold; }
 
-/* Trade Feed */
+/* ADV101 - Trade Feed */
 #trade-feed {
   display:flex; flex-direction:column; gap:var(--space-2);
   margin-top:var(--space-3); max-height:50vh; overflow-y:auto;

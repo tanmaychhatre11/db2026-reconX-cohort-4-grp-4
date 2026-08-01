@@ -39,7 +39,6 @@
 
         <!-- Main Content -->
         <main class="app-main" role="main">
-
             <!-- KPI Cards -->
             <section aria-labelledby="kpi-heading">
 
@@ -64,6 +63,10 @@
 
                 </div>
 
+                <div class="alert--danger" role="alert">
+                    ⚠ Unmatched trades &gt; 0 — 15 open breaks require attention
+                </div>
+
             </section>
 
             <!-- Live Trade Feed -->
@@ -73,6 +76,7 @@
 
                 <div
                     id="trade-feed"
+                    class="trade-feed"
                     role="status"
                     aria-live="polite"
                     aria-atomic="false">

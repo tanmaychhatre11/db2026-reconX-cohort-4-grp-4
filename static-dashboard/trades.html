@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trades</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="table-scroll">
+    <table class="data-table" id="trades-table">
+      <thead>
+        <tr>
+          <th data-col="tradeRef" data-dir="none" data-type="string">
+            Trade Ref
+            <span class="resize-handle"></span>
+          </th>
+          <th data-col="symbol" data-dir="none" data-type="string">
+            Symbol
+            <span class="resize-handle"></span>
+          </th>
+          <th data-col="qty" data-dir="none" data-type="number">
+            Quantity
+            <span class="resize-handle"></span>
+          </th>
+          <th data-col="price" data-dir="none" data-type="number">
+            Price
+            <span class="resize-handle"></span>
+          </th>
+          <th data-col="status" data-dir="none" data-type="string">
+            Status
+            <span class="resize-handle"></span>
+          </th>
+        </tr>
+      </thead>
+
+      <tbody id="trades-body">
+      </tbody>
+    </table>
+  </div>
+
+  <script src="js/trades.js"></script>
+</body>
+</html>

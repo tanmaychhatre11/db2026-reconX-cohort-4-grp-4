@@ -157,9 +157,28 @@ html, body {
 }
 
 @media (max-width:640px) {
-  .app-header { flex-basis:var(--layout-header-h-mobile); }
-  .app-main { padding:var(--space-3); }
-  .stat-card { flex-basis:100%; }
+  .app-body {
+      flex-direction: column;
+  }
+
+  .app-header {
+    flex-wrap: wrap;
+    flex:0 0 auto;                 /* let it shrink instead of staying pinned at 64px */
+    padding: var(--space-2);
+    gap: var(--space-2);
+    min-height: var(--layout-header-h-mobile);
+  }
+
+  .app-header nav {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .stat-card {
+    flex-basis: 100%;
+    min-width: 0;                  /* the 240px floor is what breaks 375px otherwise */
+  }
 }
 
 button {

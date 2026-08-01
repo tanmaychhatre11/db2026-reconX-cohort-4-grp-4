@@ -72,7 +72,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,env,loggers,caches
+        include: health,info,metrics,prometheus,env,loggers,caches,beans,conditions
       base-path: /actuator
   endpoint:
     health:
@@ -101,6 +101,8 @@ reconx:
       expiration-minutes: ${JWT_EXP_MIN:60}
       refresh-expiration-days: ${JWT_REFRESH_EXP_DAYS:7}
       issuer: reconx
+  audit:
+    enabled: false
 
 logging:
   level:

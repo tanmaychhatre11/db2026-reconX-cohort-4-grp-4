@@ -6,19 +6,33 @@
 # ============================================================================
 
 FROM eclipse-temurin:25-jdk AS build
+
 WORKDIR /workspace
-COPY pom.xml mvnw ./
-COPY .mvn .mvn
-RUN ./mvnw -q -B dependency:go-offline || true
-COPY src src
-RUN ./mvnw -q -B -DskipTests package && \
-    mv target/reconx-*.jar app.jar
+
+# Parent project
+COPY pom.xml .
+
+# Maven wrapper
+COPY recon-service/mvnw .
+COPY recon-service/.mvn .mvn
+RUN chmod +x mvnw
+
+# Copy both modules
+COPY recon-service recon-service
+COPY recon-audit-starter recon-audit-starter
+
+# Build the entire reactor
+RUN ./mvnw -q -B -pl recon-service -am -DskipTests package
 
 FROM eclipse-temurin:25-jre-alpine
+
 RUN addgroup -S reconx && adduser -S reconx -G reconx
+
 USER reconx
 WORKDIR /app
-COPY --from=build /workspace/app.jar app.jar
+
+COPY --from=build /workspace/recon-service/target/*.jar app.jar
+
 EXPOSE 8080
-ENV JAVA_OPTS=""
-ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar app.jar"]
+
+ENTRYPOINT ["java","-jar","app.jar"]

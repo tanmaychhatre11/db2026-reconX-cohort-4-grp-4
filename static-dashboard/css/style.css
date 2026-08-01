@@ -1,8 +1,43 @@
 :root {
-  --color-primary:#003366; --color-gold:#C8A951; --color-slate:#2E5FA3;
-  --color-success:#28a745; --color-warning:#ffc107; --color-danger:#dc3545;
-  --color-bg:#fff; --color-surface:#f5f5f5; --color-text:#1a1a1a; --color-border:#d4d4d4;
-  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --radius:4px;
+  --color-primary:#003366;
+  --color-gold:#C8A951;
+  --color-slate:#2E5FA3;
+  --color-success:#28a745;
+  --color-warning:#ffc107;
+  --color-danger:#dc3545;
+
+  --color-bg:#fff;
+  --color-surface:#f5f5f5;
+  --color-text:#1a1a1a;
+  --color-border:#d4d4d4;
+  --color-on-primary:#fff;
+
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+
+  --radius:4px;
+  --radius-lg:8px;
+
+  --shadow-sm:0 1px 2px rgba(0,0,0,.08);
+  --shadow-md:0 4px 8px rgba(0,0,0,.12);
+
+  --font-size-sm:12px;
+  --font-size-md:14px;
+  --font-size-lg:24px;
+
+  --border-width:1px;
+  --border-width-thick:4px;
+
+  --focus-ring-width:2px;
+  --focus-ring-offset:2px;
+
+  /* layout dimensions — tokenised so ADV098/ADV103 also read via var() */
+  --layout-header-h:64px;
+  --layout-header-h-mobile:56px;
+  --layout-footer-h:48px;
+  --layout-sidebar-w:240px;
 }
 
 [data-theme="dark"] {
@@ -15,6 +50,7 @@
 html, body {
   margin:0; height:100%;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:var(--font-size-md);
   background:var(--color-bg); color:var(--color-text);
 }
 
@@ -23,28 +59,28 @@ html, body {
 
 .app-header {
   display:flex; align-items:center; gap:var(--space-4);
-  flex:0 0 64px; padding:0 var(--space-4);
-  background:var(--color-primary); color:#fff;
+  flex:0 0 var(--layout-header-h); padding:0 var(--space-4);
+  background:var(--color-primary); color:var(--color-on-primary);
 }
 
 .app-header nav { margin-left:auto; display:flex; gap:var(--space-3); }
-.app-header a { color:#fff; text-decoration:none; }
-.app-header a[aria-current="page"] { border-bottom:2px solid var(--color-gold); }
+.app-header a { color:var(--color-on-primary); text-decoration:none; }
+.app-header a[aria-current="page"] { border-bottom:var(--border-width-thick) solid var(--color-gold); }
 
 .app-body { display:flex; flex:1 1 auto; min-height:0; }
 
 .app-sidebar {
-  flex:0 0 240px; padding:var(--space-3);
+  flex:0 0 var(--layout-sidebar-w); padding:var(--space-3);
   background:var(--color-surface);
-  border-right:1px solid var(--color-border);
+  border-right:var(--border-width) solid var(--color-border);
 }
 
 .app-main { flex:1 1 auto; padding:var(--space-4); }
 
 .app-footer {
-  flex:0 0 48px;
+  flex:0 0 var(--layout-footer-h);
   display:flex; align-items:center; justify-content:center;
-  border-top:1px solid var(--color-border);
+  border-top:var(--border-width) solid var(--color-border);
 }
 
 /* KPI Cards */
@@ -52,16 +88,17 @@ html, body {
 
 .stat-card {
   flex:1 1 calc((100% - 2 * var(--space-4))/3);
-  min-width:240px;
+  min-width:var(--layout-sidebar-w);
   padding:var(--space-3);
-  border:1px solid var(--color-border);
+  border:var(--border-width) solid var(--color-border);
   border-radius:var(--radius);
   background:var(--color-surface);
+  box-shadow:var(--shadow-sm);
 }
 
-.stat-card--warn { border-left:4px solid var(--color-warning); }
-.stat-card h3 { margin:0; opacity:.75; }
-.stat-card p { margin-top:var(--space-2); font-size:24px; font-weight:bold; }
+.stat-card--warn { border-left:var(--border-width-thick) solid var(--color-warning); }
+.stat-card h3 { margin:0; opacity:.75; font-size:var(--font-size-sm); }
+.stat-card p { margin-top:var(--space-2); font-size:var(--font-size-lg); font-weight:bold; }
 
 /* Trade Feed */
 #trade-feed {
@@ -71,14 +108,14 @@ html, body {
 
 .trade-card {
   background:var(--color-surface);
-  border:1px solid var(--color-border);
+  border:var(--border-width) solid var(--color-border);
   border-radius:var(--radius);
   padding:var(--space-2) var(--space-3);
   animation:slide-in .3s ease-out;
 }
 
-.trade-card--matched { border-left:4px solid var(--color-success); }
-.trade-card--break { border-left:4px solid var(--color-danger); }
+.trade-card--matched { border-left:var(--border-width-thick) solid var(--color-success); }
+.trade-card--break { border-left:var(--border-width-thick) solid var(--color-danger); }
 
 @keyframes slide-in {
   from { opacity:0; transform:translateX(-10%); }
@@ -88,12 +125,12 @@ html, body {
 /* Responsive */
 @media (max-width:1024px) {
   .app-body { flex-direction:column; }
-  .app-sidebar { flex:0 0 auto; border-right:none; border-bottom:1px solid var(--color-border); }
+  .app-sidebar { flex:0 0 auto; border-right:none; border-bottom:var(--border-width) solid var(--color-border); }
   .stat-card { flex-basis:calc((100% - var(--space-4))/2); }
 }
 
 @media (max-width:640px) {
-  .app-header { flex-basis:56px; }
+  .app-header { flex-basis:var(--layout-header-h-mobile); }
   .app-main { padding:var(--space-3); }
   .stat-card { flex-basis:100%; }
 }
@@ -105,7 +142,7 @@ html, body {
 
 button {
   padding:var(--space-1) var(--space-2);
-  border:1px solid var(--color-border);
+  border:var(--border-width) solid var(--color-border);
   border-radius:var(--radius);
   background:transparent;
   color:inherit;
@@ -113,6 +150,6 @@ button {
 }
 
 :focus-visible {
-  outline:2px solid var(--color-gold);
-  outline-offset:2px;
+  outline:var(--focus-ring-width) solid var(--color-gold);
+  outline-offset:var(--focus-ring-offset);
 }

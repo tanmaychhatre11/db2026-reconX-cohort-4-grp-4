@@ -1,4 +1,5 @@
 *.json
+!frontend/jsconfig.json
 # Maven build output
 target/
 backend/target/

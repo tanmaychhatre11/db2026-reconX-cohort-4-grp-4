@@ -3,7 +3,7 @@ package com.dbtraining.reconx.service;
 import com.dbtraining.reconx.dto.ReconResult;
 import com.dbtraining.reconx.model.ReconciliationRule;
 import com.dbtraining.reconx.model.TradeType;
-import io.micrometer.core.annotation.Timed;
+// import io.micrometer.core.annotation.Timed;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 // import java.util.ArrayList;
+import com.dbtraining.reconx.observability.ReconConfigMBean;
 
 /**
  * ============================================================================
@@ -28,9 +29,14 @@ import java.util.stream.Collectors;
 public class ReconciliationEngine {
 
         // private final ExecutorService executor = Executors.newFixedThreadPool(4);
+        private final ReconConfigMBean reconConfig;
 
-        @Timed(value = "reconciliation.duration", description = "Wall time of reconcile()", percentiles = { 0.5, 0.95,
-                        0.99 }, histogram = true)
+        public ReconciliationEngine(ReconConfigMBean reconConfig) {
+                this.reconConfig = reconConfig;
+        }
+
+        // @Timed(value = "reconciliation.duration", description = "Wall time of reconcile()", percentiles = { 0.5, 0.95,
+        //                 0.99 }, histogram = true)
         public List<ReconResult> reconcile(List<TradeType> internal,
                         List<TradeType> external,
                         ReconciliationRule rule) {
@@ -95,11 +101,18 @@ public class ReconciliationEngine {
                 BigDecimal[] iPair = priceQty(internal);
                 BigDecimal[] ePair = priceQty(external);
 
-                if (rule.matches(
-                                iPair[0],
-                                iPair[1],
-                                ePair[0],
-                                ePair[1])) {
+                BigDecimal runtimeTolerance = BigDecimal.valueOf(reconConfig.getPriceTolerance());
+
+                BigDecimal priceDiff = iPair[0].subtract(ePair[0]).abs();
+
+                BigDecimal priceDiffPct =
+                        iPair[0].compareTo(BigDecimal.ZERO) == 0
+                                ? priceDiff
+                                : priceDiff.divide(iPair[0], 10, java.math.RoundingMode.HALF_UP);
+
+                BigDecimal qtyDiff = iPair[1].subtract(ePair[1]).abs();
+
+                if (priceDiffPct.compareTo(runtimeTolerance) <= 0 && qtyDiff.compareTo(rule.qtyToleranceAbs()) <= 0) {
                         return ReconResult.matched(ref);
                 }
 

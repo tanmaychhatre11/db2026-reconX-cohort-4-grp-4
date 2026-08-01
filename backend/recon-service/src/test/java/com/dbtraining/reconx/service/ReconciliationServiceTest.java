@@ -5,6 +5,7 @@ import com.dbtraining.reconx.model.EquityTrade;
 import com.dbtraining.reconx.model.ReconciliationRule;
 import com.dbtraining.reconx.model.Side;
 import com.dbtraining.reconx.model.TradeRef;
+import com.dbtraining.reconx.observability.ReconConfigMBean;
 import com.dbtraining.reconx.observability.ReconMetrics;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +22,10 @@ class ReconciliationServiceTest {
     @Test
     void testRunRecon_returnsMatchedResult() {
 
-        ReconciliationEngine engine = new ReconciliationEngine();
+        ReconConfigMBean reconConfig = mock(ReconConfigMBean.class);
+        when(reconConfig.getPriceTolerance()).thenReturn(0.0); // EXACT-style matching
+
+        ReconciliationEngine engine = new ReconciliationEngine(reconConfig);
 
         ReconMetrics metrics = mock(ReconMetrics.class);
         io.micrometer.core.instrument.Timer timer =
@@ -38,17 +42,8 @@ class ReconciliationServiceTest {
         ReconciliationService service =
                 new ReconciliationService(engine, metrics);
 
-        EquityTrade internal = equity(
-                "EQU-20260603-0001",
-                "100.00",
-                "10"
-        );
-
-        EquityTrade external = equity(
-                "EQU-20260603-0001",
-                "100.00",
-                "10"
-        );
+        EquityTrade internal = equity("EQU-20260603-0001", "100.00", "10");
+        EquityTrade external = equity("EQU-20260603-0001", "100.00", "10");
 
         List<ReconResult> results = service.runRecon(
                 List.of(internal),
@@ -59,18 +54,11 @@ class ReconciliationServiceTest {
         assertThat(results).hasSize(1);
 
         ReconResult result = results.get(0);
-
-        assertThat(result.tradeRef())
-                .isEqualTo("EQU-20260603-0001");
-
-        assertThat(result.status())
-                .isEqualTo(ReconResult.Status.MATCHED);
+        assertThat(result.tradeRef()).isEqualTo("EQU-20260603-0001");
+        assertThat(result.status()).isEqualTo(ReconResult.Status.MATCHED);
     }
 
-    private EquityTrade equity(String ref,
-                               String price,
-                               String qty) {
-
+    private EquityTrade equity(String ref, String price, String qty) {
         return EquityTrade.builder()
                 .tradeRef(TradeRef.of(ref))
                 .instrumentSymbol("SAP.DE")

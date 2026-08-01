@@ -117,10 +117,36 @@ html, body {
 
 .trade-card--matched { border-left:var(--border-width-thick) solid var(--color-success); }
 .trade-card--break { border-left:var(--border-width-thick) solid var(--color-danger); }
+.trade-card--new { animation: slide-in .4s ease-out, fade-in .4s ease-out; }
+
+.alert--danger {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-danger);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  animation: pulse 2s ease-in-out infinite;
+}
 
 @keyframes slide-in {
   from { opacity:0; transform:translateX(-10%); }
   to { opacity:1; transform:translateX(0); }
+}
+
+@keyframes fade-in {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(220,53,69,.4);
+  }
+
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 8px rgba(220,53,69,0);
+  }
 }
 
 /* Responsive */
@@ -136,11 +162,6 @@ html, body {
   .stat-card { flex-basis:100%; }
 }
 
-/* Accessibility */
-@media (prefers-reduced-motion:reduce) {
-  *, *::before, *::after { animation:none !important; transition:none !important; }
-}
-
 button {
   padding:var(--space-1) var(--space-2);
   border:var(--border-width) solid var(--color-border);
@@ -153,4 +174,8 @@ button {
 :focus-visible {
   outline:var(--focus-ring-width) solid var(--color-gold);
   outline-offset:var(--focus-ring-offset);
+}
+
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
 }

@@ -14,14 +14,18 @@ export function useTradeStream(url = '/api/v1/trades/stream') {
       setConnected(true);
     };
 
-    sse.onmessage = (event) => {
+    sse.addEventListener("trade", (event) => {
+      console.log("Trade event received", event);
+
       try {
         const trade = JSON.parse(event.data);
+        console.log("Parsed trade", trade);
+
         setTrades((prev) => [trade, ...prev].slice(0, MAX_BUFFER));
-      } catch {
-        // Ignore malformed SSE payloads
+      } catch (e) {
+        console.error(e);
       }
-    };
+    });
 
     sse.onerror = () => {
       setConnected(false);

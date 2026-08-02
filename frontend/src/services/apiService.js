@@ -11,7 +11,7 @@ function authHeaders() {
     : {};
 }
 
-async function request(method, path, body) {
+async function request(method, path, body, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers: {
@@ -19,6 +19,7 @@ async function request(method, path, body) {
       ...authHeaders(),
     },
     body: body ? JSON.stringify(body) : undefined,
+    signal: options.signal,
   });
 
   if (!res.ok) {
@@ -40,15 +41,50 @@ async function request(method, path, body) {
   return await res.json();
 }
 
+function toQueryString(params = {}) {
+  const search = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      search.set(key, value);
+    }
+  });
+
+  const qs = search.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const api = {
   login: (email, password) =>
     request("POST", "/v1/auth/login", {
         email,
         password,
-    }),
-  listTrades: (params = '')  => {
-    // TODO(TICKET-ADV114): GET /v1/trades + `params` query string.
-    throw new Error('TICKET-ADV114 not implemented');
+  }),
+  listTrades: (params = {}, options = {}) => {
+    const query = new URLSearchParams();
+
+    if (params.page !== undefined) {
+      query.set("page", params.page);
+    }
+
+    if (params.status) {
+      query.set("status", params.status);
+    }
+
+    if (params.sortColumn) {
+      query.set("sort", `${params.sortColumn},${params.sortDirection}`);
+    }
+
+    const suffix = query.toString()
+      ? `?${query.toString()}`
+      : "";
+
+    return request(
+      "GET",
+      `/v1/trades${suffix}`,
+      undefined,
+      options
+    );
   },
   createTrade: (req)         => {
     // TODO(TICKET-ADV123): POST /v1/trades with the form payload.

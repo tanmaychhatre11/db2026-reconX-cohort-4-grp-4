@@ -27,27 +27,27 @@ DataTable.Header = function Header({ columns }) {
     <div className="data-table__header" role="row">
       {columns.map((column) => (
         <button
-        key={column.key}
-        className={sort?.column === column.key ? 'active' : ''}
-        aria-sort={
-          sort?.column === column.key
-              ? sort.direction
+          key={column.key}
+          className={sort?.column === column.key ? 'active' : ''}
+          aria-sort={
+            sort?.column === column.key
+              ? (sort.direction === 'asc' ? 'ascending' : 'descending')
               : 'none'
-        }
-        onClick={() =>
-          onSortChange({ 
-            column: column.key,
-            direction:
-              sort?.column === column.key &&
-              sort.direction === 'ascending'
-                ? 'descending'
-                : 'ascending'
-          })
-        }
+          }
+          onClick={() =>
+            onSortChange({
+              column: column.key,
+              direction:
+                sort?.column === column.key &&
+                sort.direction === 'asc'
+                  ? 'desc'
+                  : 'asc'
+            })
+          }
         >
           {column.label}
           {sort?.column === column.key &&
-            (sort.direction === 'ascending' ? ' ▲' : ' ▼')}
+            (sort.direction === 'asc' ? ' ▲' : ' ▼')}
         </button>
       ))}
     </div>
@@ -55,43 +55,24 @@ DataTable.Header = function Header({ columns }) {
 };
 
 DataTable.Body = function Body({ rows, render }) {
+  console.log("ROWS", rows);
   return (
     <div className="data-table__body">
-      {rows.map((row) => ( 
-        <div
-          className="data-table__row"
-          key={row.id}
-        >
+      {rows.map((row, i) => (
+        <div key={row.id ?? i} className="data-table__row" role="row">
           {render(row)}
-      </div>
-    ))}
-  </div>
+        </div>
+      ))}
+    </div>
   );
-      };
-
+};
 
 DataTable.Pagination = function Pagination({ page, totalPages, onChange }) {
-  // TODO(TICKET-ADV114): render prev / next buttons that call onChange(page±1).
-  //                     Disable prev at page === 0, next at page === totalPages-1.
   return (
     <nav className="data-table__pagination" aria-label="Pagination">
-      {/* TODO(TICKET-ADV114): ‹ {page+1} / {totalPages} › */}
-      <button
-        disabled={page === 0}
-        onClick={() => onChange(page - 1)}
-      >
-        ‹
-      </button>
-
-      <span>
-        {page + 1} / {totalPages} 
-      </span>
-      <button
-        disabled={page === totalPages - 1}
-        onClick={() => onChange(page + 1)}
-      >
-        ›
-      </button>
+      <button disabled={page === 0} onClick={() => onChange(page - 1)}>‹</button>
+      <span>{page + 1} / {totalPages}</span>
+      <button disabled={page >= totalPages - 1} onClick={() => onChange(page + 1)}>›</button>
     </nav>
   );
 };

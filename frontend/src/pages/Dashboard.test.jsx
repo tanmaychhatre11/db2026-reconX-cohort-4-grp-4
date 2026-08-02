@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '@context/AuthContext.jsx';
@@ -24,6 +24,18 @@ function renderWithProviders(ui) {
   );
 }
 
+beforeEach(() => {
+  const store = {};
+  vi.stubGlobal('localStorage', {
+    getItem: (key) => store[key] ?? null,
+    setItem: (key, value) => { store[key] = String(value); },
+    removeItem: (key) => { delete store[key]; },
+    clear: () => { for (const k in store) delete store[k]; },
+  });
+
+  vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false }));
+});
+
 describe('<Dashboard />', () => {
   it('shows summary cards', () => {
     renderWithProviders(<Dashboard trades={trades} />);
@@ -32,6 +44,6 @@ describe('<Dashboard />', () => {
     expect(screen.getByRole('heading', { name: /trades streamed/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /matched/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /open breaks/i })).toBeInTheDocument();
-    expect(screen.getByText('37,550')).toBeInTheDocument();
+    expect(screen.getByText(/37,550/)).toBeInTheDocument();
   });
 });

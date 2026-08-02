@@ -1,62 +1,58 @@
-// TICKET-ADV106 / ADV107 — EventSource live feed with prepend + slide-in animation.
+// TICKET-ADV104 / TICKET-ADV105 — EventSource live feed with prepend + slide-in animation.
 (function () {
   const FEED_EL  = document.getElementById('trade-feed');
   const status = document.getElementById('sse-status');
   if (!FEED_EL) return;
 
-  // Hardcoded demo events for the static dashboard (no backend required).
-  // Replace with: const sse = new EventSource('/api/v1/trades/stream');
-  
-  function escapeHtml(value) {
-    return String(value)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+  const STREAM_URL = 'http://localhost:8080/api/v1/trades/stream';
+  console.log("Connecting to", STREAM_URL);
+  let sse = null;
+
+  function updateConnectionBadge(text, variant) {
+    const badge = document.getElementById('sse-status');
+    if (!badge) return;
+    badge.textContent = text;
+    badge.className = 'sse-status sse-status--' + variant;
   }
 
-  function prependTradeRow(trade) {
-    const row  = document.createElement('article');
-    row .className = 'trade-card trade-card--' + trade.status.toLowerCase()+ ' trade-card--new';
-    const formatter = new Intl.NumberFormat();
-    row .innerHTML = `
-      <strong>${escapeHtml(trade.tradeRef)}</strong>
-      <span> ${escapeHtml(trade.symbol)} </span>
-      <span> qty=${formatter.format(trade.qty)} </span>
-      <span> price=${formatter.format(trade.price)} </span>
-      <span> [${escapeHtml(trade.status)}]</span>`;
-      FEED_EL.prepend(row);
+function prepend(trade) {
+  const el = document.createElement("article");
 
-      setTimeout(() => {
-        row.classList.remove('trade-card--new');
-      }, 500);
+  el.className = "trade-card trade-card--" + trade.status.toLowerCase();
 
-      while (FEED_EL.children.length > 50) {
-        FEED_EL.lastElementChild.remove();
-      }
+  el.innerHTML = `
+    <strong>${trade.tradeRef}</strong>
+    <span>${trade.instrument?.symbol ?? "-"}</span>
+    <span>Qty: ${trade.quantity}</span>
+    <span>Price: ${trade.price}</span>
+    <span>[${trade.status}]</span>
+  `;
+
+  feed.prepend(el);
+  
+  while (feed.children.length > 20) {
+    feed.removeChild(feed.lastElementChild);
+  }
+}
+
+function connect() {
+  sse = new EventSource(STREAM_URL);
+  sse.onopen = () => updateConnectionBadge('Live', 'live');
+  sse.addEventListener("trade", (event) => {
+    console.log("Raw event:", event.data);
+    try {
+      const trade = JSON.parse(event.data);
+      console.log("Trade received:", trade);
+      prepend(trade);
+    } catch (err) {
+      console.error('Malformed SSE payload', err);
     }
-
-    const sse = new EventSource('/api/v1/trades/stream');
-
-  sse.onopen = function () {
-    if (status) {
-      status.textContent = 'Live';
-    }
-  };
-
-  sse.onmessage = function (event) {
-    const trade = JSON.parse(event.data);
-    prependTradeRow(trade);
-  };
-
-  sse.onerror = function () {
-    if (status) {
-      status.textContent = 'Reconnecting…';
-    }
-  };
-
-  window.addEventListener('beforeunload', function () {
-    sse?.close();
   });
+  // Never reconnect manually here — EventSource retries with backoff on its own.
+  sse.onerror = () => updateConnectionBadge('Reconnecting…', 'reconnecting');
+}
+  
+  window.addEventListener('beforeunload', () => sse?.close());
+  console.log("Connecting to SSE stream…");
+  connect();
 })();

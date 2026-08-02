@@ -1,12 +1,20 @@
 // TICKET-ADV104 / TICKET-ADV105 — EventSource live feed with prepend + slide-in animation.
 (function () {
-  const FEED_EL  = document.getElementById('trade-feed');
-  const status = document.getElementById('sse-status');
+  const FEED_EL = document.getElementById('trade-feed');
   if (!FEED_EL) return;
 
   const STREAM_URL = 'http://localhost:8080/api/v1/trades/stream';
-  console.log("Connecting to", STREAM_URL);
   let sse = null;
+
+  const STATUS_CLASS = {
+    MATCHED: 'trade-card--matched',
+    UNMATCHED: 'trade-card--break',
+    PENDING: 'trade-card--pending',
+    DISPUTED: 'trade-card--pending',
+    CANCELLED: 'trade-card--pending',
+  };
+
+  const numberFmt = new Intl.NumberFormat();
 
   function updateConnectionBadge(text, variant) {
     const badge = document.getElementById('sse-status');
@@ -24,11 +32,10 @@
       .replace(/'/g, '&#39;');
   }
 
-  const numberFmt = new Intl.NumberFormat();
-
   function prepend(trade) {
     const el = document.createElement('article');
-    el.className = 'trade-card trade-card--' + trade.status.toLowerCase() + ' trade-card--new';
+    const statusClass = STATUS_CLASS[trade.status] ?? 'trade-card--pending';
+    el.className = 'trade-card ' + statusClass + ' trade-card--new';
 
     const symbol = escapeHtml(trade.instrument?.symbol ?? '-');
     const tradeRef = escapeHtml(trade.tradeRef);
@@ -53,22 +60,23 @@
 
   function connect() {
     sse = new EventSource(STREAM_URL);
+
     sse.onopen = () => updateConnectionBadge('Live', 'live');
-    sse.addEventListener("trade", (event) => {
-      console.log("Raw event:", event.data);
+
+    sse.addEventListener('trade', (event) => {
       try {
         const trade = JSON.parse(event.data);
-        console.log("Trade received:", trade);
         prepend(trade);
       } catch (err) {
         console.error('Malformed SSE payload', err);
       }
     });
+
     // Never reconnect manually here — EventSource retries with backoff on its own.
     sse.onerror = () => updateConnectionBadge('Reconnecting…', 'reconnecting');
   }
-    
+
   window.addEventListener('beforeunload', () => sse?.close());
-  console.log("Connecting to SSE stream…");
+
   connect();
 })();

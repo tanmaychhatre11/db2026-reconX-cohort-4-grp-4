@@ -123,7 +123,6 @@ public class TradeController {
         return ResponseEntity.noContent().build();
     }
 
-    @CrossOrigin(origins = {"http://127.0.0.1:5500","http://localhost:5500"})
     @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamTrades() {
         return tradeStreamService.subscribe();

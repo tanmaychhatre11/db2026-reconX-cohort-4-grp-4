@@ -1,12 +1,16 @@
 // TICKET-ADV114 — Compound DataTable.
 // TICKET-ADV117 — useDebouncedSearch.
-import React, { useEffect, useState } from 'react';
+// TICKET-ADV119 — memoised TradeRow.
+import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { withAuth } from '@components/withAuth.jsx';
 import DataTable from '@components/DataTable.jsx';
+import { TradeRow } from '@components/TradeRow.jsx';
 import { useDebouncedSearch } from '@hooks/useDebouncedSearch.js';
 import { api } from '@services/apiService.js';
 
 function Trades() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const debounced = useDebouncedSearch(search, 300);
   const [page, setPage] = useState(0);
@@ -31,10 +35,8 @@ function Trades() {
           sortDirection: sort?.direction,
         };
         const response = await api.listTrades(params, { signal: controller.signal });
-        console.log("API RESPONSE", response);
         setData({ items: response.items, totalPages: response.totalPages });
       } catch (err) {
-        console.log("ERROR", err);
         if (err.name === 'AbortError') return; // superseded by a newer request
         setData({ items: [], totalPages: 0 });
       }
@@ -43,6 +45,13 @@ function Trades() {
     fetchTrades();
     return () => controller.abort();
   }, [page, debounced, sort]);
+
+  // Stable identity so TradeRow's areEqual (prev.onClick === next.onClick)
+  // actually holds — without useCallback this would be a new function
+  // every render and defeat the ADV119 memo entirely.
+  const handleRowClick = useCallback((tradeId) => {
+    navigate(`/trades/${tradeId}`);
+  }, [navigate]);
 
   return (
     <section>
@@ -56,22 +65,14 @@ function Trades() {
       <DataTable data={data.items} sort={sort} onSortChange={setSort}>
         <DataTable.Header columns={[
           { key: 'tradeRef', label: 'Ref' },
-          { key: 'symbol',   label: 'Symbol' },
+          { key: 'instrumentSymbol',   label: 'Symbol' },
           { key: 'quantity', label: 'Qty' },
           { key: 'price',    label: 'Price' },
           { key: 'status',   label: 'Status' },
         ]} />
         <DataTable.Body
           rows={data.items}
-          render={(trade) => (
-            <>
-              <span>{trade.tradeRef}</span>
-              <span>{trade.instrumentSymbol}</span>
-              <span>{trade.quantity}</span>
-              <span>{trade.price}</span>
-              <span>{trade.status}</span>
-            </>
-          )}
+          render={(trade) => <TradeRow trade={trade} onClick={handleRowClick} />}
         />
         <DataTable.Pagination
           page={page}

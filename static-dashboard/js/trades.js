@@ -1,101 +1,105 @@
 // TICKET-ADV106 — Sortable, resizable, frozen header table
 (function () {
-    const table = document.getElementById('trades-table');
-    const tbody = document.getElementById('trades-body');
-  
-    if (!table || !tbody) return;
-  
-    let rows = [
-      { tradeRef: 'EQU-20260603-0001', symbol: 'SAP.DE', qty: 1000, price: 125.50, status: 'MATCHED' },
-      { tradeRef: 'FX-20260603-0001', symbol: 'EUR/USD', qty: 1000000, price: 1.0852, status: 'PENDING' },
-      { tradeRef: 'EQU-20260603-0002', symbol: 'AAPL', qty: 500, price: 178.20, status: 'BREAK' }
-    ];
-  
-    function renderRows() {
-      tbody.innerHTML = '';
-  
-      rows.forEach(trade => {
-        const tr = document.createElement('tr');
-  
-        tr.innerHTML = `
-          <td>${trade.tradeRef}</td>
-          <td>${trade.symbol}</td>
-          <td>${trade.qty}</td>
-          <td>${trade.price}</td>
-          <td>${trade.status}</td>
-        `;
-  
-        tbody.appendChild(tr);
-      });
+  const table = document.getElementById('trades-table');
+  const tbody = document.getElementById('trades-body');
+
+  if (!table || !tbody) return;
+
+  let rows = [];
+
+async function loadTrades() {
+    try {
+      const res = await fetch('http://localhost:8080/api/v1/trades?size=200');
+      const data = await res.json();
+      rows = data.items || data.content || data;   // <-- updated
+      renderRows();
+    } catch (err) {
+      console.error('Failed to load trades', err);
     }
-  
-    document.querySelectorAll('#trades-table th').forEach((header, index) => {
-      header.addEventListener('click', function () {
-        const col = header.dataset.col;
-        const type = header.dataset.type;
-  
-        const currentDir = header.dataset.dir === 'asc' ? 'desc' : 'asc';
-  
-        document.querySelectorAll('#trades-table th').forEach(th => {
-          th.dataset.dir = 'none';
-          th.removeAttribute('aria-sort');
-        });
-  
-        header.dataset.dir = currentDir;
-        header.setAttribute(
-          'aria-sort',
-          currentDir === 'asc' ? 'ascending' : 'descending'
-        );
-  
-        header.textContent =
-          header.textContent.replace(/[▲▼]/g, '') +
-          (currentDir === 'asc' ? ' ▲' : ' ▼');
-  
-        rows.sort((a, b) => {
-          let first = a[col];
-          let second = b[col];
-  
-          if (type === 'number') {
-            return currentDir === 'asc'
-              ? first - second
-              : second - first;
-          }
-  
+  }
+
+  function renderRows() {
+    tbody.innerHTML = '';
+
+    rows.forEach(trade => {
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td>${trade.tradeRef}</td>
+        <td>${trade.symbol ?? trade.instrument?.symbol ?? '-'}</td>
+        <td>${trade.qty ?? trade.quantity}</td>
+        <td>${trade.price}</td>
+        <td>${trade.status}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.querySelectorAll('#trades-table th').forEach(header => {
+    header.addEventListener('click', function () {
+      const col = header.dataset.col;
+      const type = header.dataset.type;
+
+      const currentDir = header.dataset.dir === 'asc' ? 'desc' : 'asc';
+
+      document.querySelectorAll('#trades-table th').forEach(th => {
+        th.dataset.dir = 'none';
+        th.removeAttribute('aria-sort');
+      });
+
+      header.dataset.dir = currentDir;
+      header.setAttribute(
+        'aria-sort',
+        currentDir === 'asc' ? 'ascending' : 'descending'
+      );
+
+      rows.sort((a, b) => {
+        let first = a[col];
+        let second = b[col];
+
+        if (type === 'number') {
           return currentDir === 'asc'
-            ? String(first).localeCompare(String(second))
-            : String(second).localeCompare(String(first));
-        });
-  
-        renderRows();
-      });
-    });
-  
-    document.querySelectorAll('.resize-handle').forEach(handle => {
-      let startX;
-      let startWidth;
-      let column;
-  
-      handle.addEventListener('mousedown', function (event) {
-        event.preventDefault();
-  
-        column = handle.parentElement;
-        startX = event.clientX;
-        startWidth = column.offsetWidth;
-  
-        function resize(event) {
-          column.style.width =
-            startWidth + (event.clientX - startX) + 'px';
+            ? first - second
+            : second - first;
         }
-  
-        function stopResize() {
-          document.removeEventListener('mousemove', resize);
-          document.removeEventListener('mouseup', stopResize);
-        }
-  
-        document.addEventListener('mousemove', resize);
-        document.addEventListener('mouseup', stopResize);
+
+        return currentDir === 'asc'
+          ? String(first).localeCompare(String(second))
+          : String(second).localeCompare(String(first));
       });
+
+      renderRows();
     });
-  
-    renderRows();
-  })();
+  });
+
+  document.querySelectorAll('.resize-handle').forEach(handle => {
+    let startX;
+    let startWidth;
+    let column;
+
+    handle.addEventListener('mousedown', function (event) {
+      event.preventDefault();
+      event.stopPropagation(); // don't trigger the header's sort click
+
+      column = handle.parentElement;
+      startX = event.clientX;
+      startWidth = column.offsetWidth;
+
+      function resize(event) {
+        column.style.width =
+          Math.max(40, startWidth + (event.clientX - startX)) + 'px';
+      }
+
+      function stopResize() {
+        document.removeEventListener('mousemove', resize);
+        document.removeEventListener('mouseup', stopResize);
+      }
+
+      document.addEventListener('mousemove', resize);
+      document.addEventListener('mouseup', stopResize);
+    });
+  });
+
+  loadTrades();
+})();

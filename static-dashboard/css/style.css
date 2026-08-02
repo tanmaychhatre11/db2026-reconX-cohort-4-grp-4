@@ -77,7 +77,13 @@ html, body {
   border-right:var(--border-width) solid var(--color-border);
 }
 
-.app-main { flex:1 1 auto; padding:var(--space-4); }
+.app-main {
+  flex: 1 1 auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 
 .app-footer {
   flex:0 0 var(--layout-footer-h);
@@ -209,4 +215,46 @@ button {
 
 @media (prefers-reduced-motion:reduce) {
   *, *::before, *::after { animation:none !important; transition:none !important; }
+}
+
+/* ADV106 - Data table */
+.table-scroll {
+  flex: 1 1 auto;
+  max-height: none;
+  overflow: auto;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+  border-bottom: var(--border-width) solid var(--color-border);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.data-table th[aria-sort="ascending"]::after { content: " ▲"; }
+.data-table th[aria-sort="descending"]::after { content: " ▼"; }
+
+.data-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.resize-handle {
+  display: inline-block;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  vertical-align: middle;
 }

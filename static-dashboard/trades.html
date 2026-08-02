@@ -1,44 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trades</title>
+  <script src="js/theme.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="app-shell">
 
-  <div class="table-scroll">
-    <table class="data-table" id="trades-table">
-      <thead>
-        <tr>
-          <th data-col="tradeRef" data-dir="none" data-type="string">
-            Trade Ref
-            <span class="resize-handle"></span>
-          </th>
-          <th data-col="symbol" data-dir="none" data-type="string">
-            Symbol
-            <span class="resize-handle"></span>
-          </th>
-          <th data-col="qty" data-dir="none" data-type="number">
-            Quantity
-            <span class="resize-handle"></span>
-          </th>
-          <th data-col="price" data-dir="none" data-type="number">
-            Price
-            <span class="resize-handle"></span>
-          </th>
-          <th data-col="status" data-dir="none" data-type="string">
-            Status
-            <span class="resize-handle"></span>
-          </th>
-        </tr>
-      </thead>
+  <header class="app-header" role="banner">
+    <h1>ReconX</h1>
 
-      <tbody id="trades-body">
-      </tbody>
-    </table>
+    <nav aria-label="Main Navigation">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="trades.html" aria-current="page">Trades</a>
+      <a href="recon.html">Reconciliation</a>
+    </nav>
+
+    <button id="theme-toggle" aria-label="Toggle light/dark theme">
+      🌗
+    </button>
+  </header>
+
+  <div class="app-body">
+
+    <aside class="app-sidebar" role="complementary">
+      <h2>Quick Filters</h2>
+      <ul>
+        <li><a href="#">All Trades</a></li>
+        <li><a href="#">Open Breaks</a></li>
+        <li><a href="#">Today's Trades</a></li>
+      </ul>
+    </aside>
+
+    <main class="app-main" role="main">
+      <h2>All Trades</h2>
+
+      <div class="table-scroll">
+        <table class="data-table" id="trades-table">
+          <thead>
+            <tr>
+              <th data-col="tradeRef" data-dir="none" data-type="string">
+                <span class="th-label">Trade Ref</span>
+                <span class="resize-handle"></span>
+              </th>
+              <th data-col="symbol" data-dir="none" data-type="string">
+                <span class="th-label">Symbol</span>
+                <span class="resize-handle"></span>
+              </th>
+              <th data-col="qty" data-dir="none" data-type="number">
+                <span class="th-label">Quantity</span>
+                <span class="resize-handle"></span>
+              </th>
+              <th data-col="price" data-dir="none" data-type="number">
+                <span class="th-label">Price</span>
+                <span class="resize-handle"></span>
+              </th>
+              <th data-col="status" data-dir="none" data-type="string">
+                <span class="th-label">Status</span>
+                <span class="resize-handle"></span>
+              </th>
+            </tr>
+          </thead>
+
+          <tbody id="trades-body">
+          </tbody>
+        </table>
+      </div>
+    </main>
+
   </div>
+
+  <footer class="app-footer" role="contentinfo">
+    <small>ReconX TDI 2026 · Static Dashboard (Day 7)</small>
+  </footer>
 
   <script src="js/trades.js"></script>
 </body>

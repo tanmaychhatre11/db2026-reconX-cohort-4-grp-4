@@ -52,6 +52,7 @@ public class TradeController {
         this.tradeStreamService = tradeStreamService;
     }
 
+    @CrossOrigin(origins = {"http://127.0.0.1:5500","http://localhost:5500"})
     @GetMapping
     public PagedResponse<TradeResponse> list(
             @RequestParam(required = false) LocalDate from,
@@ -66,6 +67,7 @@ public class TradeController {
         return PagedResponse.from(page, mapper::toResponse);
     }
 
+    @CrossOrigin(origins = {"http://127.0.0.1:5500","http://localhost:5500"})
     @PostMapping
     @Operation(summary = "Create a trade")
     public ResponseEntity<TradeResponse> create(@Valid @RequestBody TradeRequest req,
@@ -80,6 +82,7 @@ public class TradeController {
                 .body(mapper.toResponse(saved));
     }
 
+    @CrossOrigin(origins = {"http://127.0.0.1:5500","http://localhost:5500"})
     @PutMapping("/{id}")
     @Operation(summary = "Full update of a trade")
     public TradeResponse update(@PathVariable Long id,
@@ -93,6 +96,7 @@ public class TradeController {
         return mapper.toResponse(updated);
     }
 
+    @CrossOrigin(origins = {"http://127.0.0.1:5500","http://localhost:5500"})
     @PatchMapping("/{id}/status")
     @Operation(summary = "Update only the status field")
     public TradeResponse updateStatus(
@@ -109,6 +113,7 @@ public class TradeController {
         return mapper.toResponse(updated);
     }
 
+    @CrossOrigin(origins = {"http://127.0.0.1:5500","http://localhost:5500"})
     @DeleteMapping("/{id}")
     @Operation(summary = "Soft delete (sets deleted_at)")
     public ResponseEntity<Void> delete(

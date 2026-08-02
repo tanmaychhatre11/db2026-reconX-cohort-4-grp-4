@@ -14,8 +14,10 @@ function StatCard({ label, value }) {
   );
 }
 
-function Dashboard() {
-  const { trades, isConnected } = useTradeStream();
+function Dashboard({ trades: seededTrades }) {
+  const stream = useTradeStream();
+  const trades = seededTrades ?? stream.trades;
+  const { isConnected } = stream;
 
   const portfolioValue = useMemo(
     () => trades.reduce((sum, t) => sum + (t.quantity * t.price || 0), 0),

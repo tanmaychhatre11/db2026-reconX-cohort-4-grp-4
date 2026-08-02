@@ -41,6 +41,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/v1/auth/login",
+                        "/v1/trades/stream",
                         "/actuator/health/**",
                         "/actuator/info",
                         "/actuator/prometheus",

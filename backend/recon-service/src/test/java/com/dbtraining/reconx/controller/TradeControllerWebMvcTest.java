@@ -7,6 +7,7 @@ import com.dbtraining.reconx.repository.entity.Trade;
 import com.dbtraining.reconx.security.JwtAuthenticationFilter;
 import com.dbtraining.reconx.security.JwtTokenProvider;
 import com.dbtraining.reconx.service.TradeService;
+import com.dbtraining.reconx.service.TradeStreamService;
 import com.dbtraining.reconx.security.SecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -56,6 +57,9 @@ class TradeControllerWebMvcTest {
 
         @MockBean
         private JwtTokenProvider jwtTokenProvider;
+
+        @MockBean
+        private TradeStreamService tradeStreamService;
 
         // @MockBean
         // private JwtAuthenticationFilter jwtAuthenticationFilter;

@@ -58,7 +58,20 @@ body {
 .data-table__header { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--color-surface); }
 .data-table__th { padding: var(--space-2) var(--space-3); border: none; background: transparent; color: var(--color-text); text-align: left; cursor: pointer; }
 .data-table__th--active { font-weight: 700; }
-.data-table__row { display: grid; grid-template-columns: repeat(5, 1fr); padding: var(--space-2) var(--space-3); border-top: 1px solid var(--color-border); }
+.data-table__row { border-top: 1px solid var(--color-border); }
+.data-table__row-content {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+}
+.data-table__row-content > span[role="cell"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
 .data-table__pagination { display: flex; gap: var(--space-3); padding: var(--space-2); justify-content: center; align-items: center; }
 
 /* TICKET-ADV123 / ADV072 — form styling */

@@ -42,77 +42,83 @@ public class TradeService {
     private final InstrumentRepository instRepo;
     private final TradeEventProducer events;
     private final TradeMetrics metrics;
+    private final TradeStreamService tradeStreamService;
 
     public TradeService(TradeRepository tradeRepo,
                         CounterpartyRepository cpRepo,
                         InstrumentRepository instRepo,
                         TradeEventProducer events,
-                        TradeMetrics metrics) {
+                        TradeMetrics metrics,
+                        TradeStreamService tradeStreamService) {
         this.tradeRepo = tradeRepo;
         this.cpRepo = cpRepo;
         this.instRepo = instRepo;
         this.events = events;
         this.metrics = metrics;
+        this.tradeStreamService = tradeStreamService;
     }
 
     public Trade create(TradeRequest req, String actor) {
+        // Check duplicate trade reference
+        if (tradeRepo.findByTradeRef(req.tradeRef()).isPresent()) {
+            throw new DuplicateTradeRefException(req.tradeRef());
+        }
 
-    // Check duplicate trade reference
-    if (tradeRepo.findByTradeRef(req.tradeRef()).isPresent()) {
-        throw new DuplicateTradeRefException(req.tradeRef());
+        // Find instrument
+        var instrument = instRepo.findById(req.instrumentId())
+                .orElseThrow(() ->
+                        new TradeNotFoundException("Instrument " + req.instrumentId()));
+
+        // Find counterparty
+        var counterparty = cpRepo.findById(req.counterpartyId())
+                .orElseThrow(() ->
+                        new TradeNotFoundException("Counterparty " + req.counterpartyId()));
+
+        Trade trade = new Trade();
+
+        trade.setTradeRef(req.tradeRef());
+        trade.setInstrument(instrument);
+        trade.setCounterparty(counterparty);
+        trade.setAssetClass(req.assetClass());
+        trade.setSide(req.side());
+        trade.setQuantity(req.quantity());
+        trade.setPrice(req.price());
+        trade.setTradeDate(req.tradeDate());
+        trade.setStatus("PENDING");
+
+        Trade saved = tradeRepo.save(trade);
+        metrics.incrementTradeCreated();
+        metrics.recordTradeValue(saved.getQuantity().multiply(saved.getPrice()).doubleValue());
+        tradeStreamService.broadcast(saved);
+        return saved;
     }
 
-    // Find instrument
-    var instrument = instRepo.findById(req.instrumentId())
-            .orElseThrow(() ->
-                    new TradeNotFoundException("Instrument " + req.instrumentId()));
+    public Trade update(Long id, TradeRequest req, String actor) {
 
-    // Find counterparty
-    var counterparty = cpRepo.findById(req.counterpartyId())
-            .orElseThrow(() ->
-                    new TradeNotFoundException("Counterparty " + req.counterpartyId()));
+        Trade trade = tradeRepo.findById(id)
+                .orElseThrow(() -> new TradeNotFoundException(String.valueOf(id)));
 
-    Trade trade = new Trade();
+        var instrument = instRepo.findById(req.instrumentId())
+                .orElseThrow(() ->
+                        new TradeNotFoundException("Instrument " + req.instrumentId()));
 
-    trade.setTradeRef(req.tradeRef());
-    trade.setInstrument(instrument);
-    trade.setCounterparty(counterparty);
-    trade.setAssetClass(req.assetClass());
-    trade.setSide(req.side());
-    trade.setQuantity(req.quantity());
-    trade.setPrice(req.price());
-    trade.setTradeDate(req.tradeDate());
-    trade.setStatus("PENDING");
+        var counterparty = cpRepo.findById(req.counterpartyId())
+                .orElseThrow(() ->
+                        new TradeNotFoundException("Counterparty " + req.counterpartyId()));
 
-    Trade saved = tradeRepo.save(trade);
-    metrics.incrementTradeCreated();
-    metrics.recordTradeValue(saved.getQuantity().multiply(saved.getPrice()).doubleValue());
-    return saved;
-}
-public Trade update(Long id, TradeRequest req, String actor) {
+        trade.setTradeRef(req.tradeRef());
+        trade.setInstrument(instrument);
+        trade.setCounterparty(counterparty);
+        trade.setAssetClass(req.assetClass());
+        trade.setSide(req.side());
+        trade.setQuantity(req.quantity());
+        trade.setPrice(req.price());
+        trade.setTradeDate(req.tradeDate());
 
-    Trade trade = tradeRepo.findById(id)
-            .orElseThrow(() -> new TradeNotFoundException(String.valueOf(id)));
-
-    var instrument = instRepo.findById(req.instrumentId())
-            .orElseThrow(() ->
-                    new TradeNotFoundException("Instrument " + req.instrumentId()));
-
-    var counterparty = cpRepo.findById(req.counterpartyId())
-            .orElseThrow(() ->
-                    new TradeNotFoundException("Counterparty " + req.counterpartyId()));
-
-    trade.setTradeRef(req.tradeRef());
-    trade.setInstrument(instrument);
-    trade.setCounterparty(counterparty);
-    trade.setAssetClass(req.assetClass());
-    trade.setSide(req.side());
-    trade.setQuantity(req.quantity());
-    trade.setPrice(req.price());
-    trade.setTradeDate(req.tradeDate());
-
-    return tradeRepo.save(trade);
-}
+        Trade updated = tradeRepo.save(trade);
+        tradeStreamService.broadcast(updated);
+        return updated;
+    }
 
     public Trade updateStatus(Long id, String status, String actor) {
 
@@ -121,7 +127,9 @@ public Trade update(Long id, TradeRequest req, String actor) {
 
         trade.setStatus(status);
 
-        return tradeRepo.save(trade);
+        Trade updated = tradeRepo.save(trade);
+        tradeStreamService.broadcast(updated);
+        return updated;
     }  
 
     public void softDelete(Long id, String actor) {
@@ -131,7 +139,8 @@ public Trade update(Long id, TradeRequest req, String actor) {
 
         trade.softDelete();
 
-        tradeRepo.save(trade);
+        Trade deleted = tradeRepo.save(trade);
+        tradeStreamService.broadcast(deleted);
     }
 
     @Transactional(readOnly = true)

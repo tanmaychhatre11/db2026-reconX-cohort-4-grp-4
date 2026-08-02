@@ -78,7 +78,7 @@ SELECT
     ROUND((random() * 10000 + 1)::NUMERIC, 4)                 AS quantity,
     ROUND((random() * 500 + 1)::NUMERIC, 4)                   AS price,
     DATE '2026-04-01' + (n % 120) * INTERVAL '1 day'          AS trade_date,
-    (ARRAY['PENDING','MATCHED','UNMATCHED','DISPUTED','MATCHED','MATCHED'])[1 + (n % 6)]
+    (ARRAY['PENDING','MATCHED','UNMATCHED','DISPUTED','MATCHED','MATCHED','CANCELLED'])[1 + (n % 7)]
                                                               AS status
 FROM generate_series(1, 500) AS n;
 

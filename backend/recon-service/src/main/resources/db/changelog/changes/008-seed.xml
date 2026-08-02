@@ -94,8 +94,9 @@
             CASE
                 WHEN random() < 0.70 THEN 'MATCHED'
                 WHEN random() < 0.82 THEN 'PENDING'
-                WHEN random() < 0.94 THEN 'UNMATCHED'
-                ELSE 'DISPUTED'
+                WHEN random() < 0.90 THEN 'UNMATCHED'
+                WHEN random() < 0.96 THEN 'DISPUTED'
+                ELSE 'CANCELLED'
             END
 
         FROM generate_series(1,500) gs

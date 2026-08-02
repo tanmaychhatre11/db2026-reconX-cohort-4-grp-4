@@ -4,6 +4,7 @@ import com.dbtraining.reconx.dto.PagedResponse;
 import com.dbtraining.reconx.dto.TradeMapper;
 import com.dbtraining.reconx.dto.TradeRequest;
 import com.dbtraining.reconx.dto.TradeResponse;
+import com.dbtraining.reconx.service.TradeStreamService;
 import com.dbtraining.reconx.repository.entity.Trade;
 import com.dbtraining.reconx.service.TradeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +18,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -41,10 +44,12 @@ public class TradeController {
 
     private final TradeService service;
     private final TradeMapper mapper;
+    private final TradeStreamService tradeStreamService;
 
-    public TradeController(TradeService service, TradeMapper mapper) {
+    public TradeController(TradeService service, TradeMapper mapper, TradeStreamService tradeStreamService) {
         this.service = service;
         this.mapper = mapper;
+        this.tradeStreamService = tradeStreamService;
     }
 
     @GetMapping
@@ -74,18 +79,19 @@ public class TradeController {
                 .created(URI.create("/api/v1/trades/" + saved.getId()))
                 .body(mapper.toResponse(saved));
     }
-@PutMapping("/{id}")
-@Operation(summary = "Full update of a trade")
-public TradeResponse update(@PathVariable Long id,
-                            @Valid @RequestBody TradeRequest req,
-                            @AuthenticationPrincipal Object principal) {
 
-    String actor = String.valueOf(principal);
+    @PutMapping("/{id}")
+    @Operation(summary = "Full update of a trade")
+    public TradeResponse update(@PathVariable Long id,
+                                @Valid @RequestBody TradeRequest req,
+                                @AuthenticationPrincipal Object principal) {
 
-    Trade updated = service.update(id, req, actor);
+        String actor = String.valueOf(principal);
 
-    return mapper.toResponse(updated);
-}
+        Trade updated = service.update(id, req, actor);
+
+        return mapper.toResponse(updated);
+    }
 
     @PatchMapping("/{id}/status")
     @Operation(summary = "Update only the status field")
@@ -115,5 +121,10 @@ public TradeResponse update(@PathVariable Long id,
         );
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamTrades() {
+        return tradeStreamService.subscribe();
     }
 }

@@ -86,10 +86,7 @@ export const api = {
       options
     );
   },
-  createTrade: (req)         => {
-    // TODO(TICKET-ADV123): POST /v1/trades with the form payload.
-    throw new Error('TICKET-ADV123 not implemented');
-  },
+  createTrade: (req)         => request("POST", "/v1/trades", req),
   updateStatus: (id, status) => {
     // TODO(TICKET-ADV119): PATCH /v1/trades/{id}/status with { status }.
     throw new Error('TICKET-ADV119 not implemented');

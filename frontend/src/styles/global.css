@@ -1,106 +1,742 @@
-/* TICKET-ADV101 / ADV102 — CSS custom properties + data-theme overrides */
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
 :root {
-  --color-primary: #003366;
-  --color-success: #28a745;
-  --color-warning: #ffc107;
-  --color-danger:  #dc3545;
-  --color-bg:      #ffffff;
-  --color-text:    #1a1a1a;
-  --color-surface: #f5f5f5;
-  --color-border:  #d4d4d4;
+  /* Brand */
+  --color-primary:       #003366;
+  --color-primary-hover: #00457a;
+  --color-primary-light: #e6eef6;
+
+  /* Semantic */
+  --color-success:     #1e8e3e;
+  --color-success-bg:  #e6f4ea;
+  --color-warning:     #b8860b;
+  --color-warning-bg:  #fff6df;
+  --color-danger:      #c0293c;
+  --color-danger-bg:   #fceced;
+  --color-info:        #0d6efd;
+  --color-info-bg:     #e8f1ff;
+
+  /* Neutrals */
+  --color-bg:            #ffffff;
+  --color-text:          #1a1a1a;
+  --color-text-muted:    #62676c;
+  --color-surface:       #f5f5f5;
+  --color-surface-raised:#ffffff;
+  --color-border:        #d9d9d9;
+
+  /* Spacing scale */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
-  --radius:  4px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Radius scale */
+  --radius-sm: 4px;
+  --radius:    6px;
+  --radius-lg: 12px;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+
+  /* Typography */
   --font-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --fs-xs:   12px;
+  --fs-sm:   13px;
+  --fs-base: 14px;
+  --fs-md:   16px;
+  --fs-lg:   20px;
+  --fs-xl:   26px;
+  --lh-base: 1.5;
+
+  /* Motion */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
 }
 
 [data-theme="dark"] {
-  --color-bg:      #1a1a1a;
-  --color-text:    #f5f5f5;
-  --color-surface: #2a2a2a;
-  --color-border:  #3a3a3a;
+  --color-primary:        #4d8fd1;
+  --color-primary-hover:  #6ba3dd;
+  --color-primary-light:  rgba(77, 143, 209, 0.16);
+
+  --color-success:    #4caf6f;
+  --color-success-bg: rgba(76, 175, 111, 0.14);
+  --color-warning:    #e0b23d;
+  --color-warning-bg: rgba(224, 178, 61, 0.14);
+  --color-danger:     #e5677c;
+  --color-danger-bg:  rgba(229, 103, 124, 0.14);
+  --color-info:       #5b9bff;
+  --color-info-bg:    rgba(91, 155, 255, 0.14);
+
+  --color-bg:             #14171a;
+  --color-text:           #eef0f2;
+  --color-text-muted:     #9aa1a8;
+  --color-surface:        #1e2226;
+  --color-surface-raised: #262b30;
+  --color-border:         #343a40;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
 }
 
 /* TICKET-ADV104 — respect reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 * { box-sizing: border-box; }
+
+html { color-scheme: light; }
+[data-theme="dark"] { color-scheme: dark; }
 
 body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-base);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--transition-base), color var(--transition-base);
 }
 
-/* TICKET-ADV098 — page shell layout */
-.layout { display: grid; grid-template-rows: 64px 1fr; min-height: 100vh; }
-.layout__header { display: flex; align-items: center; gap: var(--space-4); padding: 0 var(--space-4); background: var(--color-primary); color: #fff; }
-.layout__nav    { display: flex; gap: var(--space-3); margin-left: auto; }
-.layout__nav a  { color: #fff; text-decoration: none; }
-.layout__nav a:hover { text-decoration: underline; }
-.layout__main   { padding: var(--space-4); }
+h1, h2, h3 { font-weight: 600; line-height: 1.25; }
+h2 { font-size: var(--fs-lg); margin: 0 0 var(--space-4); }
 
-.page-skeleton { display: grid; gap: var(--space-3); padding: var(--space-4) 0; }
-.page-skeleton__title, .page-skeleton__content {
+/* ============================================================
+   LAYOUT SHELL — TICKET-ADV098
+   ============================================================ */
+.layout {
+  display: grid;
+  grid-template-rows: 64px 1fr;
+  min-height: 100vh;
+}
+
+.layout__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.layout__header h1 {
+  font-size: var(--fs-md);
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.layout__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-left: auto;
+}
+
+.layout__nav a {
+  position: relative;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: var(--fs-sm);
+  padding: var(--space-1) 0;
+  transition: color var(--transition-fast);
+}
+
+.layout__nav a:hover {
+  color: #fff;
+}
+
+/* If you switch <Link> to <NavLink>, this lights up automatically */
+.layout__nav a[aria-current="page"] {
+  color: #fff;
+  font-weight: 600;
+}
+.layout__nav a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -6px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.layout__nav a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Theme toggle — icon-style button, not primary CTA styling */
+.layout__nav button[aria-label="Toggle theme"] {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: var(--fs-md);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.layout__nav button[aria-label="Toggle theme"]:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.layout__main {
+  padding: var(--space-4);
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   PAGE SKELETON — Suspense fallback
+   ============================================================ */
+.page-skeleton {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+
+.page-skeleton__title,
+.page-skeleton__content {
   height: 28px;
   border-radius: var(--radius);
-  background: var(--color-surface);
-  animation: skeleton-pulse 1.2s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    var(--color-border) 37%,
+    var(--color-surface) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
-.page-skeleton__title { width: 30%; }
-.page-skeleton__content { height: 120px; }
+
+.page-skeleton__title    { width: 30%; }
+.page-skeleton__content  { height: 120px; }
 .page-skeleton__content--short { width: 70%; height: 48px; }
 
-@keyframes skeleton-pulse {
-  50% { opacity: 0.45; }
+@keyframes skeleton-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: 0 0; }
 }
 
-/* TICKET-ADV101 / ADV110 — BEM stat cards + trade cards */
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); margin: var(--space-3) 0; }
-.stat-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-3); }
-.stat-card h3 { margin: 0; font-size: 14px; color: var(--color-text); opacity: 0.7; }
-.stat-card p  { margin: var(--space-2) 0 0; font-size: 24px; font-weight: 600; }
+/* ============================================================
+   STAT CARDS — Dashboard
+   ============================================================ */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-3) 0 var(--space-5);
+}
 
-/* TICKET-ADV114 — data-table styling */
-.data-table { display: flex; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--radius); }
-.data-table__header { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--color-surface); }
-.data-table__th { padding: var(--space-2) var(--space-3); border: none; background: transparent; color: var(--color-text); text-align: left; cursor: pointer; }
-.data-table__th--active { font-weight: 700; }
-.data-table__row { border-top: 1px solid var(--color-border); }
+.stat-card {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.stat-card h3 {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.stat-card p {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* SSE connection status (Dashboard: role="status") */
+[role="status"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+[role="status"]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-danger);
+}
+[role="status"]:has(+ *):before {}
+section:has([role="status"]) [role="status"]::before {
+  /* fallback handled below via JS-driven text; keeping selector simple */
+}
+
+/* Simpler, dependency-free connected/disconnected dot via text match isn't
+   possible in pure CSS — recommend wrapping the status word in its own
+   <span data-connected="true|false"> so this can target it directly: */
+[role="status"] [data-connected="true"]::before {
+  background: var(--color-success);
+}
+
+/* ============================================================
+   STATUS PILLS — TradeRow (trade.status: MATCHED / PENDING /
+   UNMATCHED / DISPUTED)
+   ============================================================ */
+.status-pill {
+  display: inline-block;
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.status-pill.matched {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.status-pill.pending {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+.status-pill.unmatched {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+.status-pill.disputed {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+/* fallback for any status not explicitly styled */
+.status-pill:not(.matched):not(.pending):not(.unmatched):not(.disputed) {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+/* ============================================================
+   DATA TABLE — TICKET-ADV114
+   ============================================================ */
+
+input[aria-label="Filter by status"] {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: var(--space-3) 0 var(--space-4);
+  padding: var(--space-2) var(--space-3) var(--space-2) 36px;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  /* subtle search icon, inline SVG so no asset/import needed */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2362676c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
+}
+
+input[aria-label="Filter by status"]::placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+input[aria-label="Filter by status"]:hover {
+  border-color: var(--color-text-muted);
+}
+
+input[aria-label="Filter by status"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.data-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-surface-raised);
+}
+
+.data-table__header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Buttons rendered by DataTable.Header have no stable class name today
+   (only a toggled "active"/"" string), so we style by tag + the aria-sort
+   attribute the component already sets correctly — no JSX change needed. */
+.data-table__header button {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.data-table__header button:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.data-table__header button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+
+.data-table__header button[aria-sort="ascending"]:hover,
+.data-table__header button[aria-sort="descending"]:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.data-table__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.data-table__row {
+  border-top: 1px solid var(--color-border);
+}
+.data-table__row:first-child { border-top: none; }
+
 .data-table__row-content {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   align-items: center;
   padding: var(--space-2) var(--space-3);
   cursor: pointer;
+  transition: background var(--transition-fast);
 }
+
+.data-table__row-content:hover {
+  background: var(--color-surface);
+}
+
+.data-table__row-content:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
 .data-table__row-content > span[role="cell"] {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+  font-size: var(--fs-sm);
 }
-.data-table__pagination { display: flex; gap: var(--space-3); padding: var(--space-2); justify-content: center; align-items: center; }
 
-/* TICKET-ADV123 / ADV072 — form styling */
-.login-form, .trade-form { display: grid; gap: var(--space-2); max-width: 360px; }
-.login-form label, .trade-form label { display: grid; gap: var(--space-1); }
-.login-form input, .trade-form input, .trade-form select {
-  padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius);
-  background: var(--color-bg); color: var(--color-text);
+.data-table__pagination {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  justify-content: center;
+  align-items: center;
+  border-top: 1px solid var(--color-border);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
 }
-.form-error { color: var(--color-danger); font-size: 13px; margin: 0; }
 
-button { padding: var(--space-2) var(--space-3); border: 1px solid var(--color-primary); background: var(--color-primary); color: #fff; border-radius: var(--radius); cursor: pointer; }
-button:disabled { opacity: 0.6; cursor: not-allowed; }
+.data-table__pagination button {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 var(--space-2);
+}
 
-/* TICKET-ADV113 — error boundary fallback */
-.error-fallback { padding: var(--space-4); border: 1px solid var(--color-danger); border-radius: var(--radius); background: var(--color-surface); }
+/* Narrow viewports: allow horizontal scroll rather than crushing columns */
+@media (max-width: 640px) {
+  .data-table {
+    overflow-x: auto;
+  }
+  .data-table__header,
+  .data-table__row-content {
+    min-width: 560px;
+  }
+}
 
-/* TICKET-ADV109 — keyboard focus visibility */
-:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+/* ============================================================
+   FORMS — login-form (ADV072) / trade-form (ADV123)
+   ============================================================ */
+
+section:has(.trade-form) h2 {
+  text-align: center;
+}
+
+.login-form,
+.trade-form {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 480px;
+  padding: var(--space-4);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  margin: var(--space-5) auto;
+}
+
+.login-form label,
+.trade-form label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.login-form input,
+.trade-form input,
+.trade-form select {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--fs-base);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.login-form input:hover,
+.trade-form input:hover,
+.trade-form select:hover {
+  border-color: var(--color-text-muted);
+}
+
+.login-form input:focus,
+.trade-form input:focus,
+.trade-form select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.trade-form select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+                     linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: var(--space-5);
+}
+
+.form-error {
+  color: var(--color-danger);
+  font-size: var(--fs-xs);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.form-error::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+button {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   ERROR BOUNDARY FALLBACK — TICKET-ADV113
+   ============================================================ */
+.error-fallback {
+  padding: var(--space-5);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius);
+  background: var(--color-danger-bg);
+  color: var(--color-text);
+  max-width: 480px;
+  margin: var(--space-5) auto;
+  text-align: center;
+}
+
+.error-fallback h2,
+.error-fallback h3 {
+  color: var(--color-danger);
+  margin-top: 0;
+}
+
+.error-fallback button {
+  margin-top: var(--space-3);
+}
+
+/* ============================================================
+   ACCESSIBILITY — TICKET-ADV109
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-border: #8a8a8a;
+    --color-text-muted: #3a3a3a;
+  }
+  [data-theme="dark"] {
+    --color-border: #6a6a6a;
+    --color-text-muted: #c7c7c7;
+  }
+}
+
+/* ============================================================
+   LIVE TRADE FEED — React Dashboard
+   ============================================================ */
+
+.trade-feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.trade-card {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.2fr 1.2fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-left: 6px solid var(--color-info);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition:
+      transform var(--transition-fast),
+      box-shadow var(--transition-fast),
+      background var(--transition-fast);
+}
+
+.trade-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.trade-card strong {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.trade-card span {
+  font-size: var(--fs-sm);
+}
+
+.trade-card--matched {
+  border-left-color: var(--color-success);
+}
+
+.trade-card--break {
+  border-left-color: var(--color-danger);
+}
+
+.trade-card--pending {
+  border-left-color: var(--color-warning);
+}
+
+/* Animation when a new trade arrives */
+.trade-card--new {
+  animation: trade-slide-in 500ms ease;
+}
+
+@keyframes trade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+  .trade-card {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+}

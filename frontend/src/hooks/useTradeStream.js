@@ -1,40 +1,63 @@
-// TICKET-ADV116 — useTradeStream() — SSE subscription returning live trades.
 import { useEffect, useState } from 'react';
 
-const MAX_BUFFER = 200;
+const MAX_BUFFER = 500;
 
 export function useTradeStream(url = '/api/v1/trades/stream') {
   const [trades, setTrades] = useState([]);
   const [isConnected, setConnected] = useState(false);
 
   useEffect(() => {
-    const sse = new EventSource(url);
+    let sse;
 
-    sse.onopen = () => {
-      setConnected(true);
-    };
-
-    sse.addEventListener("trade", (event) => {
-      console.log("Trade event received", event);
-
+    async function initialise() {
       try {
-        const trade = JSON.parse(event.data);
-        console.log("Parsed trade", trade);
+        const response = await fetch('/api/v1/trades?size=500');
 
-        setTrades((prev) => [trade, ...prev].slice(0, MAX_BUFFER));
-      } catch (e) {
-        console.error(e);
+        if (!response.ok) {
+          throw new Error('Failed to load trades');
+        }
+
+        const page = await response.json();
+
+        setTrades(page.items ?? []);
+      } catch (err) {
+        console.error('Initial trade load failed', err);
       }
-    });
 
-    sse.onerror = () => {
-      setConnected(false);
-    };
+      sse = new EventSource(url);
+
+      sse.onopen = () => {
+        setConnected(true);
+      };
+
+      sse.addEventListener('trade', (event) => {
+        try {
+          const trade = JSON.parse(event.data);
+
+          setTrades(prev => {
+            const withoutCurrent = prev.filter(t => t.id !== trade.id);
+            return [trade, ...withoutCurrent];
+          });
+
+        } catch (err) {
+          console.error(err);
+        }
+      });
+
+      sse.onerror = () => {
+        setConnected(false);
+      };
+    }
+
+    initialise();
 
     return () => {
-      sse.close();
+      sse?.close();
     };
   }, [url]);
 
-  return { trades, isConnected };
+  return {
+    trades,
+    isConnected
+  };
 }

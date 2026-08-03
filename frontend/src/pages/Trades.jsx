@@ -58,7 +58,7 @@ function Trades() {
       <h2>Trades</h2>
       <input
         aria-label="Filter by status"
-        placeholder="status filter (PENDING/MATCHED/…)"
+        placeholder="Filter by Status"
         value={search}
         onChange={(e) => setSearch(e.target.value.toUpperCase())}
       />

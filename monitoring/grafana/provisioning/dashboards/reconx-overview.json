@@ -45,7 +45,25 @@
       "datasource": { "type": "prometheus", "uid": "reconx-prometheus" },
       "targets": [ { "expr": "sum(rate(reconciliation_duration_seconds_bucket[5m])) by (le)", "legendFormat": "{{le}}", "format": "heatmap" } ],
       "fieldConfig": { "defaults": { "unit": "s" } },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 } }
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 } },
+    
+      {
+        "id": 8,
+        "type": "timeseries",
+        "title": "Throughput: produced vs consumed",
+        "datasource": { "type": "prometheus", "uid": "reconx-prometheus" },
+        "targets": [
+          {
+            "expr": "sum(rate(kafka_producer_record_send_total[1m]))",
+            "legendFormat": "produced"
+          },
+          {
+            "expr": "sum(rate(kafka_consumer_records_consumed_total[1m]))",
+            "legendFormat": "consumed"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 }
+      }
   ],
   "refresh": "10s", "schemaVersion": 39, "tags": ["reconx"], "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" }, "title": "ReconX Overview", "uid": "reconx-overview", "version": 1

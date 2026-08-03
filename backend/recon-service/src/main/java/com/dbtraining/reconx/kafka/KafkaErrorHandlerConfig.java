@@ -29,24 +29,6 @@ import org.springframework.util.backoff.ExponentialBackOff;
  *          record on `trade-events-dlq` with the same partition as the
  *          original.
  * ============================================================================
- *
- *  TODO(TICKET-ADV134 + ADV135):
- *    <pre>
- *    @Bean
- *    public DefaultErrorHandler errorHandler(KafkaTemplate<Object,Object> template) {
- *        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
- *            template,
- *            (ConsumerRecord<?,?> rec, Exception ex) ->
- *                new TopicPartition(rec.topic() + "-dlq", rec.partition()));
- *        ExponentialBackOff backoff = new ExponentialBackOff(1000L, 2.0);
- *        backoff.setMaxAttempts(3);
- *        return new DefaultErrorHandler(recoverer, backoff);
- *    }
- *    </pre>
- *
- *  GOTCHA: trade-events-dlq must already exist (TICKET-ADV128). The
- *          recoverer does NOT auto-create the topic.
- * ============================================================================
  */
 @Configuration
 public class KafkaErrorHandlerConfig {

@@ -49,7 +49,7 @@
     
     {"id": 7, "type": "timeseries", "title": "Consumer lag by topic",
       "datasource": { "type": "prometheus", "uid": "reconx-prometheus" },
-      "targets": [ { "expr": "sum by (topic) (kafka_consumer_records_lag)", "legendFormat": "{{topic}}" }
+      "targets": [ { "expr": "sum by (topic) (kafka_consumer_fetch_manager_records_lag)", "legendFormat": "{{topic}}" }
         ],
         "fieldConfig": {
           "defaults": {

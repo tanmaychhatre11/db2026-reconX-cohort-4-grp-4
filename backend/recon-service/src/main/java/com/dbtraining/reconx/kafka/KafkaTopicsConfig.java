@@ -19,27 +19,6 @@ import org.springframework.kafka.config.TopicBuilder;
  *          step. No manual `kafka-topics --create` ceremony.
  * OBSERVE: Kafdrop (http://localhost:9000) lists all 4 topics after startup.
  * ============================================================================
- *
- *  TODO(TICKET-ADV128 + ADV134):
- *    <pre>
- *    @Bean public NewTopic tradeEvents() {
- *        return TopicBuilder.name("trade-events").partitions(3).replicas(1).build();
- *    }
- *    @Bean public NewTopic reconResults() {
- *        return TopicBuilder.name("recon-results").partitions(2).replicas(1).build();
- *    }
- *    @Bean public NewTopic systemAlerts() {
- *        return TopicBuilder.name("system-alerts").partitions(1).replicas(1).build();
- *    }
- *    @Bean public NewTopic tradeEventsDlq() {
- *        return TopicBuilder.name("trade-events-dlq").partitions(3).replicas(1).build();
- *    }
- *    </pre>
- *
- *  HINT: Class is @Profile("!dev & !test") so it only runs in real
- *        environments — in dev / test the embedded Kafka or compose stack
- *        is expected to have the topics already.
- * ============================================================================
  */
 @Configuration
 @Profile("!dev & !test")

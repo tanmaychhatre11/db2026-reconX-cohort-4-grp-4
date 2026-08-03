@@ -13,7 +13,8 @@ groups:
 
       - alert: HighApiLatencyP95
         expr: |
-          histogram_quantile(0.95,
+          histogram_quantile(
+            0.95,
             sum(rate(http_server_requests_seconds_bucket[5m])) by (le, uri)
           ) > 0.5
         for: 3m
@@ -23,10 +24,11 @@ groups:
           summary: "P95 request latency > 500ms for 3 min on {{ $labels.uri }}"
           description: "Current P95 = {{ $value | humanizeDuration }}"
 
-      - alert: KafkaDlqGrowing
-        expr: increase(kafka_consumer_records_consumed_total{topic="trade-events-dlq"}[5m]) > 0
+      - alert: KafkaDlqMessages
+        expr: sum(kafka_consumer_records_consumed_total{topic="trade-events-dlq"}) > 0
         for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "Messages landing in trade-events-dlq"
+          summary: "Messages in trade-events DLQ"
+          description: "At least one message has been DLQ'd in the last minute. Inspect /api/v1/admin/dlq."

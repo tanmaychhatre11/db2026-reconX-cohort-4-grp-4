@@ -20,16 +20,6 @@ import org.springframework.stereotype.Component;
  * OBSERVE: A POST /api/v1/trades shows up here as a log line referencing the
  *          same eventId emitted by TradeEventProducer.
  * ============================================================================
- *
- *  TODO(TICKET-ADV131):
- *    @KafkaListener(topics = "trade-events", groupId = "recon-service")
- *    public void onTradeEvent(TradeEvent event) {
- *        log.info("Recon-trigger received eventId={} ref={} type={}",
- *                 event.eventId(), event.tradeRef(), event.eventType());
- *        // enqueue a recon job (do NOT reconcile inline — that would block
- *        // the consumer thread and back up the partition).
- *    }
- * ============================================================================
  */
 @Component
 public class ReconciliationConsumer {

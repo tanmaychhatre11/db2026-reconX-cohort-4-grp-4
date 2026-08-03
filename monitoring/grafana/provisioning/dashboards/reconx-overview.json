@@ -46,8 +46,8 @@
       "targets": [ { "expr": "sum(rate(reconciliation_duration_seconds_bucket[5m])) by (le)", "legendFormat": "{{le}}", "format": "heatmap" } ],
       "fieldConfig": { "defaults": { "unit": "s" } },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 } },
-    
-    {"id": 7, "type": "timeseries", "title": "Consumer lag by topic",
+
+    { "id": 7, "type": "timeseries", "title": "Consumer lag by topic",
       "datasource": { "type": "prometheus", "uid": "reconx-prometheus" },
       "targets": [ { "expr": "sum by (topic) (kafka_consumer_fetch_manager_records_lag)", "legendFormat": "{{topic}}" }
         ],
@@ -65,7 +65,16 @@
           }
         },
         "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 }
-      }
+      },
+
+    { "id": 8, "type": "timeseries", "title": "Throughput: produced vs consumed (ADV141)",
+      "datasource": { "type": "prometheus", "uid": "reconx-prometheus" },
+      "targets": [
+        { "expr": "sum(rate(kafka_producer_record_send_total[1m]))", "legendFormat": "produced/sec" },
+        { "expr": "sum(rate(kafka_consumer_fetch_manager_records_consumed_total[1m]))", "legendFormat": "consumed/sec" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 } }
   ],
   "refresh": "10s", "schemaVersion": 39, "tags": ["reconx"], "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" }, "title": "ReconX Overview", "uid": "reconx-overview", "version": 1

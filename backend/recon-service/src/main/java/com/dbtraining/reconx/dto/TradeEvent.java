@@ -29,4 +29,19 @@ public record TradeEvent(
     public enum EventType {
         TRADE_CREATED, TRADE_UPDATED, TRADE_CANCELLED
     }
+
+    public static TradeEvent created(String tradeRef, String after) {
+        return new TradeEvent(UUID.randomUUID(), tradeRef, EventType.TRADE_CREATED,
+                Instant.now(), null, null, after);
+    }
+
+    public static TradeEvent updated(String tradeRef, String before, String after) {
+        return new TradeEvent(UUID.randomUUID(), tradeRef, EventType.TRADE_UPDATED,
+                Instant.now(), null, before, after);
+    }
+
+    public static TradeEvent cancelled(String tradeRef, String before) {
+        return new TradeEvent(UUID.randomUUID(), tradeRef, EventType.TRADE_CANCELLED,
+                Instant.now(), null, before, null);
+    }
 }

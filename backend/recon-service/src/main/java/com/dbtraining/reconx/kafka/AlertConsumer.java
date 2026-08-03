@@ -19,13 +19,6 @@ import org.springframework.stereotype.Component;
  * OBSERVE: Publish a string to `system-alerts` via Kafdrop -> a WARN line
  *          appears in the app log.
  * ============================================================================
- *
- *  TODO(TICKET-ADV133):
- *    @KafkaListener(topics = "system-alerts", groupId = "alert-service")
- *    public void onAlert(String payload) {
- *        log.warn("ALERT: {}", payload);
- *    }
- * ============================================================================
  */
 @Component
 public class AlertConsumer {

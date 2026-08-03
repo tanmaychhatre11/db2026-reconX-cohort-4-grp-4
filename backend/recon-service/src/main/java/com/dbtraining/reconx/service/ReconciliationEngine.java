@@ -4,6 +4,8 @@ import com.dbtraining.reconx.dto.ReconResult;
 import com.dbtraining.reconx.model.ReconciliationRule;
 import com.dbtraining.reconx.model.TradeType;
 // import io.micrometer.core.annotation.Timed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,11 +30,17 @@ import com.dbtraining.reconx.observability.ReconConfigMBean;
 @Service
 public class ReconciliationEngine {
 
+        private static final Logger log = LoggerFactory.getLogger(ReconciliationEngine.class);
+
         // private final ExecutorService executor = Executors.newFixedThreadPool(4);
         private final ReconConfigMBean reconConfig;
 
         public ReconciliationEngine(ReconConfigMBean reconConfig) {
                 this.reconConfig = reconConfig;
+        }
+
+        public void scheduleRecon(String tradeRef) {
+                log.info("Recon scheduled for tradeRef={}", tradeRef);
         }
 
         // @Timed(value = "reconciliation.duration", description = "Wall time of reconcile()", percentiles = { 0.5, 0.95,

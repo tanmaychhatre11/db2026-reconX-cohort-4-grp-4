@@ -45,7 +45,20 @@ body {
 .layout__nav a:hover { text-decoration: underline; }
 .layout__main   { padding: var(--space-4); }
 
-.loader { padding: var(--space-4); color: var(--color-text); }
+.page-skeleton { display: grid; gap: var(--space-3); padding: var(--space-4) 0; }
+.page-skeleton__title, .page-skeleton__content {
+  height: 28px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+.page-skeleton__title { width: 30%; }
+.page-skeleton__content { height: 120px; }
+.page-skeleton__content--short { width: 70%; height: 48px; }
+
+@keyframes skeleton-pulse {
+  50% { opacity: 0.45; }
+}
 
 /* TICKET-ADV101 / ADV110 — BEM stat cards + trade cards */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); margin: var(--space-3) 0; }
@@ -58,7 +71,20 @@ body {
 .data-table__header { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--color-surface); }
 .data-table__th { padding: var(--space-2) var(--space-3); border: none; background: transparent; color: var(--color-text); text-align: left; cursor: pointer; }
 .data-table__th--active { font-weight: 700; }
-.data-table__row { display: grid; grid-template-columns: repeat(5, 1fr); padding: var(--space-2) var(--space-3); border-top: 1px solid var(--color-border); }
+.data-table__row { border-top: 1px solid var(--color-border); }
+.data-table__row-content {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+}
+.data-table__row-content > span[role="cell"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
 .data-table__pagination { display: flex; gap: var(--space-3); padding: var(--space-2); justify-content: center; align-items: center; }
 
 /* TICKET-ADV123 / ADV072 — form styling */

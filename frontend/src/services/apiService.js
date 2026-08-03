@@ -2,34 +2,91 @@
 const BASE = '/api';
 
 function authHeaders() {
-  // TODO(TICKET-ADV112): read 'reconx-token' from sessionStorage and return
-  //                     {@code Authorization: Bearer <token>}. Return {} when
-  //                     no token is set (login + signup endpoints).
-  return {};
+  const token = sessionStorage.getItem("reconx-token");
+
+  return token
+    ? {
+        Authorization: `Bearer ${token}`,
+      }
+    : {};
 }
 
-async function request(method, path, body) {
-  // TODO(TICKET-ADV112): fetch(`${BASE}${path}`, { method, headers, body }).
-  //   - headers must include Content-Type: application/json and ...authHeaders()
-  //   - serialise `body` via JSON.stringify when present
-  //   - on !res.ok throw new Error(`HTTP ${res.status}: ${detail}`)
-  //   - status 204 -> return null, otherwise return await res.json()
-  throw new Error('TICKET-ADV112 not implemented');
+async function request(method, path, body, options = {}) {
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+    signal: options.signal,
+  });
+
+  if (!res.ok) {
+    let detail = "";
+
+    try {
+      detail = await res.text();
+    } catch {
+      detail = "";
+    }
+
+    throw new Error(`HTTP ${res.status}: ${detail}`);
+  }
+
+  if (res.status === 204) {
+    return null;
+  }
+
+  return await res.json();
+}
+
+function toQueryString(params = {}) {
+  const search = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      search.set(key, value);
+    }
+  });
+
+  const qs = search.toString();
+  return qs ? `?${qs}` : '';
 }
 
 export const api = {
-  login: (email, password)   => {
-    // TODO(TICKET-ADV072): POST /auth/login with { email, password }.
-    throw new Error('TICKET-ADV072 not implemented');
+  login: (email, password) =>
+    request("POST", "/v1/auth/login", {
+        email,
+        password,
+  }),
+  listTrades: (params = {}, options = {}) => {
+    const query = new URLSearchParams();
+
+    if (params.page !== undefined) {
+      query.set("page", params.page);
+    }
+
+    if (params.status) {
+      query.set("status", params.status);
+    }
+
+    if (params.sortColumn) {
+      query.set("sort", `${params.sortColumn},${params.sortDirection}`);
+    }
+
+    const suffix = query.toString()
+      ? `?${query.toString()}`
+      : "";
+
+    return request(
+      "GET",
+      `/v1/trades${suffix}`,
+      undefined,
+      options
+    );
   },
-  listTrades: (params = '')  => {
-    // TODO(TICKET-ADV114): GET /v1/trades + `params` query string.
-    throw new Error('TICKET-ADV114 not implemented');
-  },
-  createTrade: (req)         => {
-    // TODO(TICKET-ADV123): POST /v1/trades with the form payload.
-    throw new Error('TICKET-ADV123 not implemented');
-  },
+  createTrade: (req)         => request("POST", "/v1/trades", req),
   updateStatus: (id, status) => {
     // TODO(TICKET-ADV119): PATCH /v1/trades/{id}/status with { status }.
     throw new Error('TICKET-ADV119 not implemented');

@@ -21,6 +21,13 @@ public class TradeStreamService {
         SseEmitter emitter = new SseEmitter(TIMEOUT);
         emitters.add(emitter);
 
+        // Flush the response immediately so EventSource can report an open connection.
+        try {
+            emitter.send(SseEmitter.event().comment("connected"));
+        } catch (IOException e) {
+            emitters.remove(emitter);
+        }
+
         emitter.onCompletion(() -> emitters.remove(emitter));
         emitter.onTimeout(() -> emitters.remove(emitter));
         emitter.onError(e -> emitters.remove(emitter));

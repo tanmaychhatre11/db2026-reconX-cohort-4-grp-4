@@ -1,6 +1,7 @@
 package com.dbtraining.reconx.kafka;
 
 import com.dbtraining.reconx.dto.TradeEvent;
+import com.dbtraining.reconx.service.ReconciliationEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -25,10 +26,16 @@ import org.springframework.stereotype.Component;
 public class ReconciliationConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(ReconciliationConsumer.class);
+    private final ReconciliationEngine reconEngine;
+
+    public ReconciliationConsumer(ReconciliationEngine reconEngine) {
+        this.reconEngine = reconEngine;
+    }
 
     @KafkaListener(topics = KafkaTopicsConfig.TRADE_EVENTS, groupId = "recon-service")
     public void onTradeEvent(TradeEvent event) {
         log.info("Recon-trigger received eventId={} ref={} type={}",
                 event.eventId(), event.tradeRef(), event.eventType());
+        reconEngine.scheduleRecon(event.tradeRef());
     }
 }

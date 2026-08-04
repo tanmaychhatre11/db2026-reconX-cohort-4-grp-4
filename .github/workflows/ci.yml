@@ -1,48 +1,221 @@
-# .github/workflows/ci.yml
 name: CI
 
 on:
-  pull_request:
-    branches: [main, develop]
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  packages: write
+  pull-requests: write
+
+env:
+  IMAGE_REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: ${{ github.repository_owner }}
+  BACKEND_IMAGE_NAME: reconx-backend
+  FRONTEND_IMAGE_NAME: reconx-frontend
+  POSTGRES_DB: reconx_test
+  POSTGRES_USER: test
+  POSTGRES_PASSWORD: test
+  POSTGRES_PORT: 5432
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Build
-        run: mvn -B compile
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Test
-        run: mvn -B test
-
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK
+
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Lint (compiler warnings, non-blocking)
-        run: mvn -B compile -Dmaven.compiler.showWarnings=true
+          java-version: "25"
+          distribution: temurin
+          cache: maven
+
+      - name: Backend compile
+        working-directory: backend/recon-service
+        run: ./mvnw -B -f ../pom.xml -pl recon-service -am compile
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: reconx_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d reconx_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "25"
+          distribution: temurin
+          cache: maven
+
+      - name: Liquibase validate
+        working-directory: backend/recon-service
+        run: >
+          ./mvnw -B -f ../pom.xml -pl recon-service -am liquibase:validate
+          -Dspring.profiles.active=uat
+          -Dliquibase.url=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+          -Dliquibase.username=${{ env.POSTGRES_USER }}
+          -Dliquibase.password=${{ env.POSTGRES_PASSWORD }}
+          -Dspring.datasource.url=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+          -Dspring.datasource.username=${{ env.POSTGRES_USER }}
+          -Dspring.datasource.password=${{ env.POSTGRES_PASSWORD }}
+
+      - name: Backend verify
+        working-directory: backend/recon-service
+        run: >
+          ./mvnw -B -f ../pom.xml -pl recon-service -am verify
+          -Dspring.profiles.active=uat
+          -Dspring.datasource.url=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+          -Dspring.datasource.username=${{ env.POSTGRES_USER }}
+          -Dspring.datasource.password=${{ env.POSTGRES_PASSWORD }}
+
+      - name: Coverage gate
+        working-directory: backend/recon-service
+        run: |
+          report="target/site/jacoco/jacoco.csv"
+          if [ ! -f "$report" ]; then
+            echo "JaCoCo report not found at $report"
+            exit 1
+          fi
+
+          coverage_values="$(awk -F',' '
+            NR > 1 {
+              line_missed += $8
+              line_covered += $9
+              branch_missed += $6
+              branch_covered += $7
+            }
+            END {
+              line_total = line_missed + line_covered
+              branch_total = branch_missed + branch_covered
+              line_pct = line_total ? (line_covered / line_total) * 100 : 0
+              branch_pct = branch_total ? (branch_covered / branch_total) * 100 : 0
+              printf "%.2f %.2f\n", line_pct, branch_pct
+            }
+          ' "$report")"
+
+          line_pct="$(echo "$coverage_values" | cut -d' ' -f1)"
+          branch_pct="$(echo "$coverage_values" | cut -d' ' -f2)"
+
+          echo "Line coverage: ${line_pct}%"
+          echo "Branch coverage: ${branch_pct}%"
+
+          awk -v line="$line_pct" -v branch="$branch_pct" '
+            BEGIN {
+              if (line < 85) {
+                printf "Line coverage %.2f%% below 85%%\n", line
+                exit 1
+              }
+              if (branch < 70) {
+                printf "Branch coverage %.2f%% below 70%%\n", branch
+                exit 1
+              }
+              printf "Rule satisfied: line %.2f%%, branch %.2f%%\n", line, branch
+            }
+          '
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Frontend install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Frontend test
+        working-directory: frontend
+        run: npm test
+
+      - name: Frontend build
+        working-directory: frontend
+        run: npm run build
+
+  build-and-push:
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata (backend)
+        id: backend-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.BACKEND_IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=long
+            type=ref,event=tag
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.backend-meta.outputs.tags }}
+          labels: ${{ steps.backend-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker metadata (frontend)
+        id: frontend-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.FRONTEND_IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=long
+            type=ref,event=tag
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.frontend-meta.outputs.tags }}
+          labels: ${{ steps.frontend-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

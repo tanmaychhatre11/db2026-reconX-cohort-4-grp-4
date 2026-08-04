@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 
-const MAX_BUFFER = 500;
-
 export function useTradeStream(url = '/api/v1/trades/stream') {
   const [trades, setTrades] = useState([]);
   const [isConnected, setConnected] = useState(false);
@@ -11,13 +9,16 @@ export function useTradeStream(url = '/api/v1/trades/stream') {
 
     async function initialise() {
       try {
-        const response = await fetch('/api/v1/trades?size=500');
+        const response = await fetch('/api/v1/trades?size=5000');
 
         if (!response.ok) {
           throw new Error('Failed to load trades');
         }
 
         const page = await response.json();
+        console.log(page.totalElements);
+        console.log(page.items.length);
+        console.log(page.items[0]);
 
         setTrades(page.items ?? []);
       } catch (err) {

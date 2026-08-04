@@ -58,8 +58,7 @@ public class TradeController {
             @RequestParam(required = false) LocalDate to,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long counterpartyId,
-            @PageableDefault(size = 20, sort = "tradeDate",
-                    direction = Sort.Direction.DESC)
+            @PageableDefault(size = 20, sort = "tradeDate", direction = Sort.Direction.DESC)
             Pageable pageable) {
 
         Page<Trade> page = service.list(from, to, status,counterpartyId, pageable);

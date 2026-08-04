@@ -94,6 +94,51 @@ jobs:
           -Dspring.datasource.username=${{ env.POSTGRES_USER }}
           -Dspring.datasource.password=${{ env.POSTGRES_PASSWORD }}
 
+      - name: Coverage gate
+        working-directory: backend/recon-service
+        run: |
+          report="target/site/jacoco/jacoco.csv"
+          if [ ! -f "$report" ]; then
+            echo "JaCoCo report not found at $report"
+            exit 1
+          fi
+
+          coverage_values="$(awk -F',' '
+            NR > 1 {
+              line_missed += $8
+              line_covered += $9
+              branch_missed += $6
+              branch_covered += $7
+            }
+            END {
+              line_total = line_missed + line_covered
+              branch_total = branch_missed + branch_covered
+              line_pct = line_total ? (line_covered / line_total) * 100 : 0
+              branch_pct = branch_total ? (branch_covered / branch_total) * 100 : 0
+              printf "%.2f %.2f\n", line_pct, branch_pct
+            }
+          ' "$report")"
+
+          line_pct="$(echo "$coverage_values" | cut -d' ' -f1)"
+          branch_pct="$(echo "$coverage_values" | cut -d' ' -f2)"
+
+          echo "Line coverage: ${line_pct}%"
+          echo "Branch coverage: ${branch_pct}%"
+
+          awk -v line="$line_pct" -v branch="$branch_pct" '
+            BEGIN {
+              if (line < 85) {
+                printf "Line coverage %.2f%% below 85%%\n", line
+                exit 1
+              }
+              if (branch < 70) {
+                printf "Branch coverage %.2f%% below 70%%\n", branch
+                exit 1
+              }
+              printf "Rule satisfied: line %.2f%%, branch %.2f%%\n", line, branch
+            }
+          '
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:

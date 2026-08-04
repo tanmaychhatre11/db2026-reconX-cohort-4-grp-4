@@ -15,7 +15,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
+import java.util.Map;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -43,33 +46,34 @@ public class TradeService {
     private final TradeEventProducer events;
     private final TradeMetrics metrics;
     private final TradeStreamService tradeStreamService;
+    private final ObjectMapper objectMapper;
 
     public TradeService(TradeRepository tradeRepo,
                         CounterpartyRepository cpRepo,
                         InstrumentRepository instRepo,
                         TradeEventProducer events,
                         TradeMetrics metrics,
-                        TradeStreamService tradeStreamService) {
+                        TradeStreamService tradeStreamService,
+                        ObjectMapper objectMapper) {
         this.tradeRepo = tradeRepo;
         this.cpRepo = cpRepo;
         this.instRepo = instRepo;
         this.events = events;
         this.metrics = metrics;
         this.tradeStreamService = tradeStreamService;
+        this.objectMapper = objectMapper;
     }
 
     public Trade create(TradeRequest req, String actor) {
-        // Check duplicate trade reference
+
         if (tradeRepo.findByTradeRef(req.tradeRef()).isPresent()) {
             throw new DuplicateTradeRefException(req.tradeRef());
         }
 
-        // Find instrument
         var instrument = instRepo.findById(req.instrumentId())
                 .orElseThrow(() ->
                         new TradeNotFoundException("Instrument " + req.instrumentId()));
 
-        // Find counterparty
         var counterparty = cpRepo.findById(req.counterpartyId())
                 .orElseThrow(() ->
                         new TradeNotFoundException("Counterparty " + req.counterpartyId()));
@@ -87,6 +91,36 @@ public class TradeService {
         trade.setStatus("PENDING");
 
         Trade saved = tradeRepo.save(trade);
+
+        try {
+            Map<String, Object> snapshot = Map.of(
+                    "tradeRef", saved.getTradeRef(),
+                    "instrumentId", saved.getInstrument().getId(),
+                    "counterpartyId", saved.getCounterparty().getId(),
+                    "assetClass", saved.getAssetClass(),
+                    "side", saved.getSide(),
+                    "quantity", saved.getQuantity(),
+                    "price", saved.getPrice(),
+                    "tradeDate", saved.getTradeDate(),
+                    "status", saved.getStatus()
+            );
+
+            String after = objectMapper.writeValueAsString(snapshot);
+
+            events.publish(new TradeEvent(
+                    UUID.randomUUID(),
+                    saved.getTradeRef(),
+                    TradeEvent.EventType.TRADE_CREATED,
+                    Instant.now(),
+                    actor,
+                    null,
+                    after
+            ));
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to publish TradeEvent", e);
+        }
+
         metrics.incrementTradeCreated();
         metrics.recordTradeValue(saved.getQuantity().multiply(saved.getPrice()).doubleValue());
         tradeStreamService.broadcast(saved);
@@ -94,7 +128,6 @@ public class TradeService {
     }
 
     public Trade update(Long id, TradeRequest req, String actor) {
-
         Trade trade = tradeRepo.findById(id)
                 .orElseThrow(() -> new TradeNotFoundException(String.valueOf(id)));
 
@@ -117,6 +150,35 @@ public class TradeService {
 
         Trade updated = tradeRepo.save(trade);
         tradeStreamService.broadcast(updated);
+        try {
+            Map<String, Object> snapshot = Map.of(
+                    "tradeRef", updated.getTradeRef(),
+                    "instrumentId", updated.getInstrument().getId(),
+                    "counterpartyId", updated.getCounterparty().getId(),
+                    "assetClass", updated.getAssetClass(),
+                    "side", updated.getSide(),
+                    "quantity", updated.getQuantity(),
+                    "price", updated.getPrice(),
+                    "tradeDate", updated.getTradeDate(),
+                    "status", updated.getStatus()
+            );
+
+            String after = objectMapper.writeValueAsString(snapshot);
+
+            events.publish(new TradeEvent(
+                    UUID.randomUUID(),
+                    updated.getTradeRef(),
+                    TradeEvent.EventType.TRADE_UPDATED,
+                    Instant.now(),
+                    actor,
+                    null,
+                    after
+            ));
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to publish TradeEvent", e);
+        }
+
         return updated;
     }
 
@@ -129,6 +191,36 @@ public class TradeService {
 
         Trade updated = tradeRepo.save(trade);
         tradeStreamService.broadcast(updated);
+
+        try {
+            Map<String, Object> snapshot = Map.of(
+                    "tradeRef", updated.getTradeRef(),
+                    "instrumentId", updated.getInstrument().getId(),
+                    "counterpartyId", updated.getCounterparty().getId(),
+                    "assetClass", updated.getAssetClass(),
+                    "side", updated.getSide(),
+                    "quantity", updated.getQuantity(),
+                    "price", updated.getPrice(),
+                    "tradeDate", updated.getTradeDate(),
+                    "status", updated.getStatus()
+            );
+
+            String after = objectMapper.writeValueAsString(snapshot);
+
+            events.publish(new TradeEvent(
+                    UUID.randomUUID(),
+                    updated.getTradeRef(),
+                    TradeEvent.EventType.TRADE_UPDATED,
+                    Instant.now(),
+                    actor,
+                    null,
+                    after
+            ));
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to publish TradeEvent", e);
+        }
+
         return updated;
     }  
 
@@ -141,6 +233,35 @@ public class TradeService {
 
         Trade deleted = tradeRepo.save(trade);
         tradeStreamService.broadcast(deleted);
+        try {
+            Map<String, Object> snapshot = Map.of(
+                    "tradeRef", deleted.getTradeRef(),
+                    "instrumentId", deleted.getInstrument().getId(),
+                    "counterpartyId", deleted.getCounterparty().getId(),
+                    "assetClass", deleted.getAssetClass(),
+                    "side", deleted.getSide(),
+                    "quantity", deleted.getQuantity(),
+                    "price", deleted.getPrice(),
+                    "tradeDate", deleted.getTradeDate(),
+                    "status", deleted.getStatus()
+            );
+
+            String after = objectMapper.writeValueAsString(snapshot);
+
+            events.publish(new TradeEvent(
+                    UUID.randomUUID(),
+                    deleted.getTradeRef(),
+                    TradeEvent.EventType.TRADE_CANCELLED,
+                    Instant.now(),
+                    actor,
+                    null,
+                    after
+            ));
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to publish TradeEvent", e);
+        }
+
     }
 
     @Transactional(readOnly = true)

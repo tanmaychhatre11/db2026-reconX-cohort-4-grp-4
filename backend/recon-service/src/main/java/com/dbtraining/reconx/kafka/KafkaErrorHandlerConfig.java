@@ -1,6 +1,14 @@
 package com.dbtraining.reconx.kafka;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.TopicPartition;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.CommonErrorHandler;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.util.backoff.ExponentialBackOff;
 
 /**
  * ============================================================================
@@ -21,27 +29,19 @@ import org.springframework.context.annotation.Configuration;
  *          record on `trade-events-dlq` with the same partition as the
  *          original.
  * ============================================================================
- *
- *  TODO(TICKET-ADV134 + ADV135):
- *    <pre>
- *    @Bean
- *    public DefaultErrorHandler errorHandler(KafkaTemplate<Object,Object> template) {
- *        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
- *            template,
- *            (ConsumerRecord<?,?> rec, Exception ex) ->
- *                new TopicPartition(rec.topic() + "-dlq", rec.partition()));
- *        ExponentialBackOff backoff = new ExponentialBackOff(1000L, 2.0);
- *        backoff.setMaxAttempts(3);
- *        return new DefaultErrorHandler(recoverer, backoff);
- *    }
- *    </pre>
- *
- *  GOTCHA: trade-events-dlq must already exist (TICKET-ADV128). The
- *          recoverer does NOT auto-create the topic.
- * ============================================================================
  */
 @Configuration
 public class KafkaErrorHandlerConfig {
 
-    // TODO(TICKET-ADV134 + ADV135): define the errorHandler @Bean — see comments above.
+    @Bean
+    public CommonErrorHandler errorHandler(KafkaTemplate<Object, Object> template) {
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
+                template,
+                (ConsumerRecord<?, ?> record, Exception exception) ->
+                        new TopicPartition(record.topic() + "-dlq", record.partition()));
+
+        ExponentialBackOff backOff = new ExponentialBackOff(1_000L, 2.0);
+        backOff.setMaxAttempts(3);
+        return new DefaultErrorHandler(recoverer, backOff);
+    }
 }

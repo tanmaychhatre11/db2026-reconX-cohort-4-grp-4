@@ -22,6 +22,10 @@ env:
   IMAGE_NAMESPACE: ${{ github.repository_owner }}
   BACKEND_IMAGE_NAME: reconx-backend
   FRONTEND_IMAGE_NAME: reconx-frontend
+  POSTGRES_DB: reconx_test
+  POSTGRES_USER: test
+  POSTGRES_PASSWORD: test
+  POSTGRES_PORT: 5432
 
 jobs:
   lint:
@@ -45,6 +49,20 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: reconx_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d reconx_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     steps:
       - uses: actions/checkout@v4
 
@@ -55,9 +73,26 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Backend test
+      - name: Liquibase validate
         working-directory: backend/recon-service
-        run: ./mvnw -B -f ../pom.xml -pl recon-service -am test
+        run: >
+          ./mvnw -B -f ../pom.xml -pl recon-service -am liquibase:validate
+          -Dspring.profiles.active=uat
+          -Dliquibase.url=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+          -Dliquibase.username=${{ env.POSTGRES_USER }}
+          -Dliquibase.password=${{ env.POSTGRES_PASSWORD }}
+          -Dspring.datasource.url=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+          -Dspring.datasource.username=${{ env.POSTGRES_USER }}
+          -Dspring.datasource.password=${{ env.POSTGRES_PASSWORD }}
+
+      - name: Backend verify
+        working-directory: backend/recon-service
+        run: >
+          ./mvnw -B -f ../pom.xml -pl recon-service -am verify
+          -Dspring.profiles.active=uat
+          -Dspring.datasource.url=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+          -Dspring.datasource.username=${{ env.POSTGRES_USER }}
+          -Dspring.datasource.password=${{ env.POSTGRES_PASSWORD }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { withAuth } from '@components/withAuth.jsx';
 import { useTradeStream } from '@hooks/useTradeStream.js';
 import { withErrorBoundary } from '@components/withErrorBoundary.jsx';
+import LiveTradeFeed from '@components/LiveTradeFeed.jsx';
 
 function StatCard({ label, value }) {
   return (
@@ -14,10 +15,9 @@ function StatCard({ label, value }) {
   );
 }
 
-function Dashboard({ trades: seededTrades }) {
+function Dashboard() {
   const stream = useTradeStream();
-  const trades = seededTrades ?? stream.trades;
-  const { isConnected } = stream;
+  const { trades, isConnected } = useTradeStream();
 
   const portfolioValue = useMemo(
     () => trades.reduce((sum, t) => sum + (t.quantity * t.price || 0), 0),
@@ -26,6 +26,22 @@ function Dashboard({ trades: seededTrades }) {
 
   const matched = trades.filter((t) => t.status === 'MATCHED').length;
   const breaks  = trades.filter((t) => ['UNMATCHED','DISPUTED'].includes(t.status)).length;
+
+  console.log("Trades:", trades.length);
+
+  console.log(
+    "Latest trade:",
+    trades[0]
+  );
+
+  console.log(
+    "Portfolio:",
+    portfolioValue,
+    "Matched:",
+    matched,
+    "Breaks:",
+    breaks
+  );
 
   return (
     <section>
@@ -36,9 +52,10 @@ function Dashboard({ trades: seededTrades }) {
         <StatCard label="Matched" value={matched} />
         <StatCard label="Open breaks" value={breaks} />
       </div>
-      <div role="status" aria-live="polite">
-        SSE: {isConnected ? 'connected' : 'disconnected'}
+      <div role="status" aria-live="polite" style={{ marginBottom: "1rem" }}>
+          SSE:{" "}{isConnected? "🟢 Connected": "🔴 Disconnected"}
       </div>
+      <LiveTradeFeed trades={trades.slice(0, 10)}/>
     </section>
   );
 }
